@@ -64,12 +64,20 @@ vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 vim.api.nvim_create_autocmd('LspAttach', {
 	callback = function(event)
 		local client = vim.lsp.get_client_by_id(event.data.client_id);
+		print("LSP attached:", client.name, "supports completion:", client:supports_method('textDocument/completion'))
 		if client:supports_method('textDocument/completion') then
 			vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
+			-- Set omnifunc to use LSP
+			vim.bo[event.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
 		end
 	end
 })
-vim.cmd("set completeopt+=noselect")
+vim.cmd("set completeopt=menu,menuone,noselect")
+
+-- Completion keymaps
+vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
+vim.keymap.set('i', '<C-n>', '<C-n>', { desc = 'Next completion' })
+vim.keymap.set('i', '<C-p>', '<C-p>', { desc = 'Previous completion' })
 
 vim.cmd("colorscheme vague")
 vim.cmd(":hi statusline guibg=NONE")
