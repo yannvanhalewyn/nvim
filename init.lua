@@ -10,13 +10,20 @@ vim.keymap.set("n", "<leader>fs", ":write<CR>")
 vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format)
 
 vim.pack.add({
-		{src = "https://github.com/vague2k/vague.nvim"},
-		{src = "https://github.com/stevearc/oil.nvim"},
-		{src = "https://github.com/echasnovski/mini.pick"},
-		{src = "https://github.com/neovim/nvim-lspconfig"},
+	{ src = "https://github.com/vague2k/vague.nvim" },
+	{ src = "https://github.com/stevearc/oil.nvim" },
+	{ src = "https://github.com/echasnovski/mini.pick" },
+	{ src = "https://github.com/neovim/nvim-lspconfig" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 })
 
-vim.lsp.enable({"lua_ls"})
+require('nvim-treesitter.configs').setup({
+	highlight = {
+		enable = true,
+	},
+})
+
+vim.lsp.enable({ "lua_ls" })
 
 vim.cmd("colorscheme vague")
 vim.cmd(":hi statusline guibg=NONE")
