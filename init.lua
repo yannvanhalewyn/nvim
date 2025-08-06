@@ -17,6 +17,7 @@ vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
 vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
 
+-- Diagnostics
 vim.keymap.set("n", "[e", function()
 	vim.diagnostic.jump({ count = -1, float = true })
 end)
@@ -24,6 +25,12 @@ vim.keymap.set("n", "]e", function()
 	vim.diagnostic.jump({ count = 1, float = true })
 end)
 vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
+
+-- Tabs
+vim.keymap.set("n", "[w", ":tabprev<CR>")
+vim.keymap.set("n", "]w", ":tabnext<CR>")
+vim.keymap.set("n", "<leader><tab>n", ":tabnew<CR>")
+vim.keymap.set("n", "<leader><tab>d", ":tabclose<CR>")
 
 -- Window
 vim.keymap.set("n", "<leader>wv", ":vsplit<CR><C-w>l")
