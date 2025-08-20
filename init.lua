@@ -21,6 +21,8 @@ vim.pack.add({
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
+    { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
+    { src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by harpoon2
 })
 
 --------------------------------------------------------------------------------
@@ -41,7 +43,9 @@ minipick.setup({
 })
 
 require("oil").setup()
-require("gitsigns").setup();
+require("gitsigns").setup()
+local harpoon = require("harpoon")
+harpoon.setup()
 
 require('nvim-treesitter.configs').setup({
 	highlight = {
@@ -64,6 +68,13 @@ vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
 vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
+vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
+vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
+vim.keymap.set("n", "<A-h>", f.harpoon_select(1), { desc = "Harpoon Browse File (1)" })
+vim.keymap.set("n", "<A-j>", f.harpoon_select(2), { desc = "Harpoon Browse File (2)" })
+vim.keymap.set("n", "<A-k>", f.harpoon_select(3), { desc = "Harpoon Browse File (3)" })
+vim.keymap.set("n", "<A-l>", f.harpoon_select(4), { desc = "Harpoon Browse File (4)" })
+vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File (5)" })
 
 -- Editor
 local gitsigns = require("gitsigns")
