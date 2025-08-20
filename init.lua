@@ -16,13 +16,15 @@ vim.pack.add({
 	{ src = "https://github.com/vague2k/vague.nvim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
+	-- { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
     { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
-    { src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by harpoon2
+    { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2
+	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 })
 
 --------------------------------------------------------------------------------
@@ -103,6 +105,7 @@ vim.keymap.set("n", "]e", function()
 	vim.diagnostic.jump({ count = 1, float = true })
 end)
 vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
 
 -- Tabs
 vim.keymap.set("n", "[w", ":tabprev<CR>")
@@ -114,10 +117,10 @@ vim.keymap.set("n", "<leader><tab>d", ":tabclose<CR>")
 vim.keymap.set("n", "<leader>wv", ":vsplit<CR><C-w>l")
 vim.keymap.set("n", "<leader>ws", ":split<CR><C-w>j")
 vim.keymap.set("n", "<leader>wq", ":quit<CR>")
-vim.keymap.set("n", "<C-h>", "<C-w>h")
-vim.keymap.set("n", "<C-j>", "<C-w>j")
-vim.keymap.set("n", "<C-k>", "<C-w>k")
-vim.keymap.set("n", "<C-l>", "<C-w>l")
+vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
+vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
+vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
+vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
 
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
 
@@ -140,7 +143,7 @@ require("blink.cmp").setup({
     keymap = {
         preset = "default",
         ["<Tab>"] = { "select_and_accept", "fallback" },
-        ["<C-y>"] = { "show", "show_documentation", "hide_documentation" },
+        -- ["<C-y>"] = { "show", "show_documentation", "hide_documentation" },
         ["<C-n>"] = { "select_next" },
         ["<C-p>"] = { "select_prev" },
         ["<C-k>"] = { "select_prev", "fallback" },
