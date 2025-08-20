@@ -15,8 +15,7 @@ vim.g.maplocalleader = ","
 -- Require Plugins
 
 vim.pack.add({
-	{ src = "https://github.com/vague2k/vague.nvim" },
-	{ src = "https://github.com/catppuccin/nvim" },
+	{ src = "https://github.com/rose-pine/neovim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/tpope/vim-surround" },
 	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
@@ -81,10 +80,11 @@ local gitsigns = require("gitsigns")
 
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true } )
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" } ) -- Since , is localleader
-vim.keymap.set("n", "<leader>y", '"+y')  -- Yank to system clipboard
-vim.keymap.set("n", "<leader>p", '"+p')  -- Paste from system clipboard
-vim.keymap.set("v", "<leader>p", '"_dP') -- Paste without overwriting the default register
-vim.keymap.set("x", "y", '"+y', s)       -- Yank to the system clipboard in visual mode
+vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
+vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
+vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
+vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
+vim.keymap.set("x", "y", '"+y', s)         -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
 vim.keymap.set("n", "[c", gitsigns.prev_hunk, { desc = "Git Next Unstanged Hunk" })
 vim.keymap.set("n", "]c", gitsigns.next_hunk, { desc = "Git Previous Unstanged Hunk" })
@@ -105,6 +105,36 @@ vim.keymap.set("n", "]e", function()
 end)
 vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
+
+-- Configure diagnostic signs with nice icons (NVChad style)
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = "󰅙",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.INFO] = "󰋼",
+      [vim.diagnostic.severity.HINT] = "󰌵"
+    }
+  },
+  underline = true,
+  float = { border = "single" },
+})
+
+vim.diagnostic.config {
+	-- virtual_text = { prefix = "" },
+	signs = {
+		text =
+		{
+			[vim.diagnostic.severity.ERROR] = "󰅙",
+			[vim.diagnostic.severity.WARN] = "",
+			[vim.diagnostic.severity.INFO] = "󰋼",
+			[vim.diagnostic.severity.HINT] = "󰌵"
+		}
+	},
+	underline = true,
+	float = { border = "single" },
+}
+
 
 -- Tabs
 vim.keymap.set("n", "[w", ":tabprev<CR>")
@@ -161,7 +191,7 @@ require("blink.cmp").setup({
 --------------------------------------------------------------------------------
 -- UI
 
-vim.cmd.colorscheme("vague")
+vim.cmd.colorscheme("rose-pine")
 vim.cmd.hi("statusline guibg=NONE")
 
 require('nvim-treesitter.configs').setup({
