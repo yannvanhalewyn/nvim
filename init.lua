@@ -20,6 +20,7 @@ vim.pack.add({
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
+	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
 })
 
 require("mini.pick").setup()
@@ -99,26 +100,69 @@ vim.keymap.set('i', '<C-e>', vim.snippet.expand, { desc = 'Snippet Expand' })
 vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 
 -- Sets up omnicomplete with LSP
-vim.api.nvim_create_autocmd('LspAttach', {
-	callback = function(event)
-		local client = vim.lsp.get_client_by_id(event.data.client_id);
-		print("LSP attached:", client.name, "supports completion:", client:supports_method('textDocument/completion'))
-		if client:supports_method('textDocument/completion') then
-			vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
-			-- Set omnifunc to use LSP
-			vim.bo[event.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-		end
-	end
-})
+-- vim.api.nvim_create_autocmd('LspAttach', {
+-- 	callback = function(event)
+-- 		local client = vim.lsp.get_client_by_id(event.data.client_id);
+-- 		print("LSP attached:", client.name, "supports completion:", client:supports_method('textDocument/completion'))
+-- 		if client:supports_method('textDocument/completion') then
+-- 			vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
+-- 			-- Set omnifunc to use LSP
+-- 			vim.bo[event.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+-- 		end
+-- 	end
+-- })
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
+
+require('blink.cmp').setup({
+    -- fuzzy = { implementation = 'prefer_rust_with_warning' },
+    fuzzy = { implementation = 'lua' },
+    signature = { enabled = true },
+    keymap = {
+        preset = "default",
+        ["<C-space>"] = {},
+        ["<C-p>"] = {},
+        ["<Tab>"] = {},
+        ["<S-Tab>"] = {},
+        ["<C-y>"] = { "show", "show_documentation", "hide_documentation" },
+        ["<C-n>"] = { "select_and_accept" },
+        ["<C-k>"] = { "select_prev", "fallback" },
+        ["<C-j>"] = { "select_next", "fallback" },
+        ["<C-b>"] = { "scroll_documentation_down", "fallback" },
+        ["<C-f>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-l>"] = { "snippet_forward", "fallback" },
+        ["<C-h>"] = { "snippet_backward", "fallback" },
+        -- ["<C-e>"] = { "hide" },
+    },
+
+    appearance = {
+        use_nvim_cmp_as_default = true,
+        nerd_font_variant = "normal",
+    },
+
+    completion = {
+        documentation = {
+            auto_show = true,
+            auto_show_delay_ms = 200,
+        }
+    },
+
+    cmdline = {
+        keymap = {
+            preset = 'inherit',
+            ['<CR>'] = { 'accept_and_enter', 'fallback' },
+        },
+    },
+
+    sources = { default = { "lsp" } }
+})
 
 --------------------------------------------------------------------------------
 -- UI
 
 vim.cmd("colorscheme vague")
 vim.cmd(":hi statusline guibg=NONE")
-vim.api.nvim_create_autocmd('TextYankPost', {
-	pattern = '*',
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
 	callback = function()
 		vim.highlight.on_yank({ timeout = 140 })
 	end,
