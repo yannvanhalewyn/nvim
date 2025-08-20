@@ -14,16 +14,32 @@ vim.g.mapleader = " "
 
 vim.pack.add({
 	{ src = "https://github.com/vague2k/vague.nvim" },
+	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/tpope/vim-surround" },
 	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/echasnovski/mini.pick" },
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
 })
 
-require("mini.pick").setup()
+--------------------------------------------------------------------------------
+-- File Picker
+
+local minipick = require("mini.pick")
+
+minipick.setup({
+  mappings = {
+    choose_all = {
+		char = "<C-q>",
+		func = function ()
+			local mappings = minipick.get_picker_opts().mappings
+			vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
+		end
+	},
+  },
+})
+
 require("oil").setup()
 require("gitsigns").setup();
 
@@ -35,6 +51,8 @@ require('nvim-treesitter.configs').setup({
 
 --------------------------------------------------------------------------------
 -- Mappings
+
+local f = require("functions")
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>")
@@ -51,6 +69,8 @@ vim.keymap.set("n", "<leader>d", ":Oil<CR>")
 local gitsigns = require("gitsigns")
 
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true } )
+vim.keymap.set("n", "<leader>y", '"+y')  -- Yank to system clipboard
+vim.keymap.set("n", "<leader>p", '"+p')  -- Paste from system clipboard
 vim.keymap.set("v", "<leader>p", '"_dP') -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y', s)       -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
@@ -87,6 +107,8 @@ vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
+
+vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
 
 -- Completion keymaps
 vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
