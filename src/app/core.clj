@@ -3,9 +3,9 @@
     [app.foo :as foo]
     [clojure.string :as str]))
 
-(foo/)
+(defn my-fn 
+  "This is a docstring"
+  [a b]
+  (println a b))
 
-(defn my-fn [a b]
-  [a b])
-
-(my-fn 1 2)
+; (my-fn 1 2)
