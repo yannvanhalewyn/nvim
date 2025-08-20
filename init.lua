@@ -7,13 +7,16 @@ vim.o.tabstop = 4
 vim.o.swapfile = false
 vim.o.winborder = "rounded"
 vim.o.undofile = true
+vim.o.splitright = true
 vim.g.mapleader = " "
+vim.g.maplocalleader = ","
 
 --------------------------------------------------------------------------------
 -- Require Plugins
 
 vim.pack.add({
 	{ src = "https://github.com/vague2k/vague.nvim" },
+	{ src = "https://github.com/catppuccin/nvim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/tpope/vim-surround" },
 	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
@@ -25,6 +28,7 @@ vim.pack.add({
     { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
     { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
+	{ src = "https://github.com/Olical/conjure" },
 })
 
 --------------------------------------------------------------------------------
@@ -48,12 +52,6 @@ require("oil").setup()
 require("gitsigns").setup()
 local harpoon = require("harpoon")
 harpoon.setup()
-
-require('nvim-treesitter.configs').setup({
-	highlight = {
-		enable = true,
-	},
-})
 
 --------------------------------------------------------------------------------
 -- Mappings
@@ -82,6 +80,7 @@ vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File 
 local gitsigns = require("gitsigns")
 
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true } )
+vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" } ) -- Since , is localleader
 vim.keymap.set("n", "<leader>y", '"+y')  -- Yank to system clipboard
 vim.keymap.set("n", "<leader>p", '"+p')  -- Paste from system clipboard
 vim.keymap.set("v", "<leader>p", '"_dP') -- Paste without overwriting the default register
@@ -138,12 +137,12 @@ vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 require("blink.cmp").setup({
-    fuzzy = { implementation = "lua" }, -- "prefer_rust_with_warning"
+    fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
     signature = { enabled = true },
     keymap = {
         preset = "default",
         ["<Tab>"] = { "select_and_accept", "fallback" },
-        -- ["<C-y>"] = { "show", "show_documentation", "hide_documentation" },
+        ["<C-y>"] = { "fallback" }, -- This re-enables <C-y> in insert mode as copy from line above
         ["<C-n>"] = { "select_next" },
         ["<C-p>"] = { "select_prev" },
         ["<C-k>"] = { "select_prev", "fallback" },
@@ -155,7 +154,7 @@ require("blink.cmp").setup({
         documentation = {
             auto_show = true,
             auto_show_delay_ms = 0,
-        }
+        },
     },
 })
 
@@ -164,6 +163,12 @@ require("blink.cmp").setup({
 
 vim.cmd.colorscheme("vague")
 vim.cmd.hi("statusline guibg=NONE")
+
+require('nvim-treesitter.configs').setup({
+	highlight = {
+		enable = true,
+	},
+})
 
 -- Highlight yanked text
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -183,3 +188,16 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     vim.fn.setpos(".", save_cursor)
   end,
 })
+
+--------------------------------------------------------------------------------
+-- Clojure
+
+vim.g["conjure#mapping#doc_word"] = false
+vim.g["conjure#highlight#enabled"] = true
+vim.g.clojure_align_multiline_strings = 1
+vim.g.clojure_align_subforms = 0
+vim.g.clojure_fuzzy_indent = 1
+vim.g.clojure_fuzzy_indent_patterns = { ".*" }
+vim.g.clojure_fuzzy_indent_blacklist = {
+	"^or$", "^and$", "=", "^+$", "^-$", "^str$"
+}
