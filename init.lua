@@ -148,11 +148,24 @@ require("blink.cmp").setup({
 --------------------------------------------------------------------------------
 -- UI
 
-vim.cmd("colorscheme vague")
-vim.cmd(":hi statusline guibg=NONE")
+vim.cmd.colorscheme("vague")
+vim.cmd.hi("statusline guibg=NONE")
+
+-- Highlight yanked text
 vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 	callback = function()
 		vim.highlight.on_yank({ timeout = 140 })
 	end,
+})
+
+-- Cleanup whitespace on save
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*",
+  callback = function()
+    local save_cursor = vim.fn.getpos(".")
+    -- pcall catches errors
+    pcall(function() vim.cmd [[%s/\s\+$//e]] end)
+    vim.fn.setpos(".", save_cursor)
+  end,
 })
