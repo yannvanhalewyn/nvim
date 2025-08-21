@@ -15,18 +15,24 @@ vim.g.maplocalleader = ","
 -- Require Plugins
 
 vim.pack.add({
+	-- UI
 	{ src = "https://github.com/rose-pine/neovim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
+	{ src = "https://github.com/nvchad/ui" },
+	{ src = "https://github.com/nvchad/base46" },               -- run once: require("base46").load_all_highlights()
+	-- Editor
 	{ src = "https://github.com/tpope/vim-surround" },
 	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
-	-- { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim and nvchad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
     { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
-    { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2
+	-- Util
+    { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2 and nvchad
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
+	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
 })
 
@@ -162,6 +168,9 @@ vim.keymap.set('i', '<C-n>', '<C-n>', { desc = 'Next completion' })
 vim.keymap.set('i', '<C-p>', '<C-p>', { desc = 'Previous completion' })
 vim.keymap.set('i', '<C-e>', vim.snippet.expand, { desc = 'Snippet Expand' })
 
+-- UI
+vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() end, { desc = "Toggle Theme" })
+
 --------------------------------------------------------------------------------
 -- LSP / Completion
 
@@ -194,8 +203,30 @@ require("blink.cmp").setup({
 --------------------------------------------------------------------------------
 -- UI
 
-vim.cmd.colorscheme("rose-pine")
-vim.cmd.hi("statusline guibg=NONE")
+require("nvchad")
+vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
+-- Only run once to create files in base46 cache path.
+-- require("base46").compile()
+
+local base46_integrations = {
+  "blink",
+  "defaults",
+  "devicons",
+  "git",
+  "lsp",
+  "nvimtree",
+  "statusline",
+  "syntax",
+  "treesitter",
+  "tbline",
+  "telescope",
+}
+
+for _, name in ipairs(base46_integrations) do
+	dofile(vim.g.base46_cache .. name)
+end
+
+vim.cmd.colorscheme("nvchad")
 
 require('nvim-treesitter.configs').setup({
 	highlight = {
