@@ -31,7 +31,7 @@ vim.pack.add({
 	{ src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
 	-- Util
 	{ src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by harpoon2 and nvchad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" },  -- Required by neotree
+	{ src = "https://github.com/MunifTanjim/nui.nvim" }, -- Required by neotree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
@@ -59,7 +59,6 @@ require("oil").setup()
 require("gitsigns").setup()
 local harpoon = require("harpoon")
 harpoon.setup()
-require("nvim-paredit").setup()
 require("neo-tree").setup({
 	enable_git_status = false,
 	popup_border_style = "rounded",
@@ -111,14 +110,16 @@ local gitsigns = require("gitsigns")
 
 vim.keymap.set("i", "<C-f>", "<right>")
 vim.keymap.set("i", "<C-b>", "<left>")
+vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
+vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
-vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" })  -- Since , is localleader
-vim.keymap.set("n", "<leader>y", '"+y')                            -- Yank to system clipboard
-vim.keymap.set("n", "<leader>p", '"+p')                            -- Paste from system clipboard
-vim.keymap.set("v", "<leader>p", '"_d"+P')                         -- Overwrite from clipboard without overwriting clipboard registry
-vim.keymap.set("v", "<leader>P", '"_dP')                           -- Paste without overwriting the default register
-vim.keymap.set("x", "y", '"+y', s)                                 -- Yank to the system clipboard in visual mode
+vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since , is localleader
+vim.keymap.set("n", "<leader>y", '"+y')                           -- Yank to system clipboard
+vim.keymap.set("n", "<leader>p", '"+p')                           -- Paste from system clipboard
+vim.keymap.set("v", "<leader>p", '"_d"+P')                        -- Overwrite from clipboard without overwriting clipboard registry
+vim.keymap.set("v", "<leader>P", '"_dP')                          -- Paste without overwriting the default register
+vim.keymap.set("x", "y", '"+y', s)                                -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
@@ -323,3 +324,12 @@ vim.g.clojure_fuzzy_indent_patterns = { ".*" }
 vim.g.clojure_fuzzy_indent_blacklist = {
 	"^or$", "^and$", "=", "^+$", "^-$", "^str$"
 }
+
+local paredit = require("nvim-paredit")
+
+require("nvim-paredit").setup({
+	keys = {
+		["<localleader>o"] = false,
+		["<localleader>r"] = { paredit.api.raise_form, "Raise form" },
+	}
+})
