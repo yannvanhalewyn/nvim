@@ -18,20 +18,20 @@ vim.pack.add({
 	-- UI
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/nvchad/ui" },
-	{ src = "https://github.com/nvchad/base46" },               -- run once: require("base46").load_all_highlights()
+	{ src = "https://github.com/nvchad/base46" }, -- run once: require("base46").load_all_highlights()
 	-- Editor
 	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
+	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim and nvchad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
-    { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
+	{ src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
+	{ src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
 	-- Util
-    { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2 and nvchad
-    { src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by neotree
+	{ src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by harpoon2 and nvchad
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },  -- Required by neotree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
@@ -44,15 +44,15 @@ vim.pack.add({
 local minipick = require("mini.pick")
 
 minipick.setup({
-  mappings = {
-    choose_all = {
-		char = "<C-q>",
-		func = function ()
-			local mappings = minipick.get_picker_opts().mappings
-			vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
-		end
+	mappings = {
+		choose_all = {
+			char = "<C-q>",
+			func = function()
+				local mappings = minipick.get_picker_opts().mappings
+				vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
+			end
+		},
 	},
-  },
 })
 
 require("oil").setup()
@@ -75,6 +75,8 @@ require("neo-tree").setup({
 		}
 	},
 })
+
+local snippets = require("snippets")
 
 --------------------------------------------------------------------------------
 -- Mappings
@@ -107,13 +109,16 @@ vim.keymap.set("n", "<leader>fW", f.grep_current_WORD, { desc = "Find WORD at Po
 -- Editor
 local gitsigns = require("gitsigns")
 
-vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true } )
-vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" } ) -- Since , is localleader
-vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
-vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
-vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
-vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
-vim.keymap.set("x", "y", '"+y', s)         -- Yank to the system clipboard in visual mode
+vim.keymap.set("i", "<C-f>", "<right>")
+vim.keymap.set("i", "<C-b>", "<left>")
+
+vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
+vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" })  -- Since , is localleader
+vim.keymap.set("n", "<leader>y", '"+y')                            -- Yank to system clipboard
+vim.keymap.set("n", "<leader>p", '"+p')                            -- Paste from system clipboard
+vim.keymap.set("v", "<leader>p", '"_d"+P')                         -- Overwrite from clipboard without overwriting clipboard registry
+vim.keymap.set("v", "<leader>P", '"_dP')                           -- Paste without overwriting the default register
+vim.keymap.set("x", "y", '"+y', s)                                 -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
 -- vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 -- vim.keymap.set("n", "<A-C>", ":set cursorline!<CR>:set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
@@ -139,16 +144,16 @@ vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
 
 -- Configure diagnostic signs with nice icons (NVChad style)
 vim.diagnostic.config({
-  signs = {
-    text = {
-      [vim.diagnostic.severity.ERROR] = "󰅙",
-      [vim.diagnostic.severity.WARN] = "",
-      [vim.diagnostic.severity.INFO] = "󰋼",
-      [vim.diagnostic.severity.HINT] = "󰌵"
-    }
-  },
-  underline = true,
-  float = { border = "single" },
+	signs = {
+		text = {
+			[vim.diagnostic.severity.ERROR] = "󰅙",
+			[vim.diagnostic.severity.WARN] = "",
+			[vim.diagnostic.severity.INFO] = "󰋼",
+			[vim.diagnostic.severity.HINT] = "󰌵"
+		}
+	},
+	underline = true,
+	float = { border = "single" },
 })
 
 vim.diagnostic.config {
@@ -192,19 +197,26 @@ vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Ne
 vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
 vim.keymap.set('i', '<C-n>', '<C-n>', { desc = 'Next completion' })
 vim.keymap.set('i', '<C-p>', '<C-p>', { desc = 'Previous completion' })
-vim.keymap.set('i', '<C-e>', vim.snippet.expand, { desc = 'Snippet Expand' })
+vim.keymap.set('i', '<C-s>', snippets.expand_snippet, { desc = 'Snippet Expand' })
 
 -- Clojure
 
-vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end, { desc = "Paredit Slurp backwards" })
-vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end, { desc = "Paredit Barf backwards" })
-vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end, { desc = "Paredit Barf forwards" })
-vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end, { desc = "Paredit Slurp forwards" })
+vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end,
+	{ desc = "Paredit Slurp backwards" })
+vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,
+	{ desc = "Paredit Barf backwards" })
+vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,
+	{ desc = "Paredit Barf forwards" })
+vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,
+	{ desc = "Paredit Slurp forwards" })
 vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
 vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
-vim.keymap.set("n", "<localleader>i", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Form Insert Head" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),
+	{ desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),
+	{ desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<localleader>i", f.paredit_wrap("( ", ")", "inner_start"),
+	{ desc = "Paredit Wrap Form Insert Head" })
 vim.keymap.set("n", "<localleader>I", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Form Insert Tail" })
 
 -- UI
@@ -218,25 +230,25 @@ vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 require("blink.cmp").setup({
-    fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
-    signature = { enabled = true },
-    keymap = {
-        preset = "default",
-        ["<Tab>"] = { "select_and_accept", "fallback" },
-        ["<C-y>"] = { "fallback" }, -- This re-enables <C-y> in insert mode as copy from line above
-        ["<C-n>"] = { "select_next" },
-        ["<C-p>"] = { "select_prev" },
-        ["<C-k>"] = { "select_prev", "fallback" },
-        ["<C-b>"] = { "scroll_documentation_down", "fallback" },
-        ["<C-f>"] = { "scroll_documentation_up", "fallback" },
-    },
+	fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
+	signature = { enabled = true },
+	keymap = {
+		-- preset = "default",
+		["<Tab>"] = { "select_and_accept", "fallback" },
+		["<C-y>"] = { "fallback" }, -- This re-enables <C-y> in insert mode as copy from line above
+		["<C-n>"] = { "select_next" },
+		["<C-p>"] = { "select_prev" },
+		["<C-k>"] = { "select_prev", "fallback" },
+		["<C-b>"] = { "scroll_documentation_down", "fallback" },
+		["<C-f>"] = { "scroll_documentation_up", "fallback" },
+	},
 
-    completion = {
-        documentation = {
-            auto_show = true,
-            auto_show_delay_ms = 0,
-        },
-    },
+	completion = {
+		documentation = {
+			auto_show = true,
+			auto_show_delay_ms = 0,
+		},
+	},
 })
 
 --------------------------------------------------------------------------------
@@ -248,17 +260,17 @@ vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
 -- require("base46").compile()
 
 local base46_integrations = {
-  "blink",
-  "defaults",
-  "devicons",
-  "git",
-  "lsp",
-  -- "nvimtree",
-  "statusline",
-  "syntax",
-  -- "treesitter",
-  -- "tbline",
-  -- "telescope",
+	"blink",
+	"defaults",
+	"devicons",
+	"git",
+	"lsp",
+	-- "nvimtree",
+	"statusline",
+	"syntax",
+	-- "treesitter",
+	-- "tbline",
+	-- "telescope",
 }
 
 for _, name in ipairs(base46_integrations) do
@@ -283,20 +295,20 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- Cleanup whitespace on save
 vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*",
-  callback = function()
-    local save_cursor = vim.fn.getpos(".")
-    -- pcall catches errors
-    pcall(function() vim.cmd [[%s/\s\+$//e]] end)
-    vim.fn.setpos(".", save_cursor)
-  end,
+	pattern = "*",
+	callback = function()
+		local save_cursor = vim.fn.getpos(".")
+		-- pcall catches errors
+		pcall(function() vim.cmd [[%s/\s\+$//e]] end)
+		vim.fn.setpos(".", save_cursor)
+	end,
 })
 
 -- Reopen buffer at last stored position
 vim.api.nvim_create_autocmd("BufReadPost", {
-  pattern = "*",
-  -- silent! because may fail with truncated file before stored point
-  command = "silent! normal! g`\"zzzv"
+	pattern = "*",
+	-- silent! because may fail with truncated file before stored point
+	command = "silent! normal! g`\"zzzv"
 })
 
 --------------------------------------------------------------------------------
