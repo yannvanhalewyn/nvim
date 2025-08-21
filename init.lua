@@ -16,7 +16,6 @@ vim.g.maplocalleader = ","
 
 vim.pack.add({
 	-- UI
-	{ src = "https://github.com/rose-pine/neovim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/nvchad/ui" },
 	{ src = "https://github.com/nvchad/base46" },               -- run once: require("base46").load_all_highlights()
@@ -24,6 +23,7 @@ vim.pack.add({
 	{ src = "https://github.com/tpope/vim-surround" },
 	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
+	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim and nvchad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
@@ -31,9 +31,11 @@ vim.pack.add({
     { src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
 	-- Util
     { src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon2 and nvchad
+    { src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by neotree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
+	{ src = "https://github.com/julienvincent/nvim-paredit" },
 })
 
 --------------------------------------------------------------------------------
@@ -57,6 +59,22 @@ require("oil").setup()
 require("gitsigns").setup()
 local harpoon = require("harpoon")
 harpoon.setup()
+require("nvim-paredit").setup()
+require("neo-tree").setup({
+	enable_git_status = false,
+	popup_border_style = "rounded",
+	filesystem = {
+		hijack_netrw_behavior = "disabled",
+		window = {
+			position = "right",
+			mappings = {
+				["<tab>"] = "open",
+				["s"] = "open_split",
+				["v"] = "open_vsplit",
+			}
+		}
+	},
+})
 
 --------------------------------------------------------------------------------
 -- Mappings
@@ -73,6 +91,9 @@ vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
 vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
+vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>B", ":Neotree buffers left<cr>", { desc = "Toggle Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
 vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
 vim.keymap.set("n", "<A-h>", f.harpoon_select(1), { desc = "Harpoon Browse File (1)" })
@@ -80,6 +101,8 @@ vim.keymap.set("n", "<A-j>", f.harpoon_select(2), { desc = "Harpoon Browse File 
 vim.keymap.set("n", "<A-k>", f.harpoon_select(3), { desc = "Harpoon Browse File (3)" })
 vim.keymap.set("n", "<A-l>", f.harpoon_select(4), { desc = "Harpoon Browse File (4)" })
 vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File (5)" })
+vim.keymap.set("n", "<leader>fw", f.grep_current_word, { desc = "Find Word at Point" })
+vim.keymap.set("n", "<leader>fW", f.grep_current_WORD, { desc = "Find WORD at Point" })
 
 -- Editor
 local gitsigns = require("gitsigns")
@@ -92,6 +115,8 @@ vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without o
 vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y', s)         -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
+-- vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
+-- vim.keymap.set("n", "<A-C>", ":set cursorline!<CR>:set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
 vim.keymap.set("n", "[c", gitsigns.prev_hunk, { desc = "Git Next Unstanged Hunk" })
 vim.keymap.set("n", "]c", gitsigns.next_hunk, { desc = "Git Previous Unstanged Hunk" })
 vim.keymap.set("n", "<leader>gr", gitsigns.reset_hunk, { desc = "Git Reset Hunk", })
@@ -141,7 +166,6 @@ vim.diagnostic.config {
 	float = { border = "single" },
 }
 
-
 -- Tabs
 vim.keymap.set("n", "[w", ":tabprev<CR>")
 vim.keymap.set("n", "]w", ":tabnext<CR>")
@@ -167,6 +191,19 @@ vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
 vim.keymap.set('i', '<C-n>', '<C-n>', { desc = 'Next completion' })
 vim.keymap.set('i', '<C-p>', '<C-p>', { desc = 'Previous completion' })
 vim.keymap.set('i', '<C-e>', vim.snippet.expand, { desc = 'Snippet Expand' })
+
+-- Clojure
+
+vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end, { desc = "Paredit Slurp backwards" })
+vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end, { desc = "Paredit Barf backwards" })
+vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end, { desc = "Paredit Barf forwards" })
+vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end, { desc = "Paredit Slurp forwards" })
+vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
+vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<localleader>i", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Form Insert Head" })
+vim.keymap.set("n", "<localleader>I", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Form Insert Tail" })
 
 -- UI
 vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() end, { desc = "Toggle Theme" })
@@ -214,12 +251,12 @@ local base46_integrations = {
   "devicons",
   "git",
   "lsp",
-  "nvimtree",
+  -- "nvimtree",
   "statusline",
   "syntax",
-  "treesitter",
-  "tbline",
-  "telescope",
+  -- "treesitter",
+  -- "tbline",
+  -- "telescope",
 }
 
 for _, name in ipairs(base46_integrations) do

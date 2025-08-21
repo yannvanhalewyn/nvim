@@ -1,5 +1,23 @@
 local M = {}
 
+M.grep_current_word = function()
+  local word = vim.fn.expand("<cword>")
+  require("mini.pick").builtin.grep_live({ search = word})
+end
+
+M.grep_current_WORD = function()
+  local word = vim.fn.expand("<cWORD>")
+  -- require("telescope.builtin").grep_string({ search = word})
+end
+
+M.toggle_color_column = function()
+  if vim.api.nvim_get_option_value("colorcolumn", {}) == "" then
+    vim.api.nvim_set_option_value("colorcolumn", "80", {})
+  else
+    vim.api.nvim_set_option_value("colorcolumn", "", {})
+  end
+end
+
 M.toggle_quickfix_window = function()
 	local qf_exists = false
 
@@ -53,6 +71,19 @@ M.recenter_if_scrolled = function(cmd)
     if new_line <= top_line or new_line >= bottom_line then
       vim.api.nvim_command('normal! zz')
     end
+  end
+end
+
+M.paredit_wrap = function(l, r, placement)
+  return function()
+    -- place cursor and set mode to `insert`
+    local paredit = require("nvim-paredit")
+    paredit.cursor.place_cursor(
+      -- wrap element under cursor with `( ` and `)`
+      paredit.wrap.wrap_element_under_cursor(l, r),
+      -- cursor placement opts
+      { placement = placement, mode = "insert" }
+    )
   end
 end
 
