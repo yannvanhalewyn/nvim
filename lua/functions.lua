@@ -30,4 +30,30 @@ M.harpoon_select = function(n)
 	end
 end
 
+-- Returns a function that will call 'cmd', and execute a recenter 'zz' if and
+-- only if the new scroll position is outside of the original viewport.
+-- This allows jumping commands to keep the scroll position when staying inside
+-- the page, but recenters when jumping outside.
+M.recenter_if_scrolled = function(cmd)
+  return function()
+    local win = vim.api.nvim_get_current_win()
+    local top_line = vim.fn.line('w0')
+    local bottom_line = vim.fn.line('w$')
+
+    -- Execute the command
+    if type(cmd) == "function" then
+      cmd()
+    else
+      vim.api.nvim_command(cmd)
+    end
+
+    local new_line = vim.api.nvim_win_get_cursor(win)[1]
+
+    -- If new_line is outside of original scope, recenter
+    if new_line <= top_line or new_line >= bottom_line then
+      vim.api.nvim_command('normal! zz')
+    end
+  end
+end
+
 return M

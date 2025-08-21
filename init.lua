@@ -151,7 +151,10 @@ vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
 vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
 vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
 
+-- Quickfix
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
+vim.keymap.set("n", "[q", f.recenter_if_scrolled("cprev"), { desc = "Quickfix Prev" })
+vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Next" })
 
 -- Completion keymaps
 vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
