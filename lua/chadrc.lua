@@ -2,7 +2,7 @@
 return {
 	-- Test
 	base46 = {
-		theme = "everforest_light",
+		theme = "catppuccin",
 		theme_toggle = { "catppuccin", "everforest_light" },
 		hl_override = {
 			Comment = { italic = true },      -- Comments in Clojure

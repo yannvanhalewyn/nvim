@@ -176,6 +176,8 @@ vim.keymap.set("n", "<leader><tab>d", ":tabclose<CR>")
 vim.keymap.set("n", "<leader>wv", ":vsplit<CR><C-w>l")
 vim.keymap.set("n", "<leader>ws", ":split<CR><C-w>j")
 vim.keymap.set("n", "<leader>wq", ":quit<CR>")
+vim.keymap.set("n", "<leader>wo", vim.cmd.only, { desc = "Window Close other windows" })
+vim.keymap.set("n", "<leader>wQ", ":wall<CR>:qall<CR>", { desc = "Window Quit All" })
 vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
 vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
 vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
@@ -288,6 +290,13 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     pcall(function() vim.cmd [[%s/\s\+$//e]] end)
     vim.fn.setpos(".", save_cursor)
   end,
+})
+
+-- Reopen buffer at last stored position
+vim.api.nvim_create_autocmd("BufReadPost", {
+  pattern = "*",
+  -- silent! because may fail with truncated file before stored point
+  command = "silent! normal! g`\"zzzv"
 })
 
 --------------------------------------------------------------------------------
