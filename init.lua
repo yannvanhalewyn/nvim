@@ -269,7 +269,7 @@ local base46_integrations = {
 	-- "nvimtree",
 	"statusline",
 	"syntax",
-	-- "treesitter",
+	"treesitter",
 	-- "tbline",
 	-- "telescope",
 }
@@ -281,9 +281,11 @@ end
 vim.cmd.colorscheme("nvchad")
 
 require('nvim-treesitter.configs').setup({
+  ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
 	highlight = {
 		enable = true,
 	},
+  indent = { enable = true },
 })
 
 -- Highlight yanked text
