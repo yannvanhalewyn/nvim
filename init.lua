@@ -1,3 +1,6 @@
+--------------------------------------------------------------------------------
+-- Options
+
 vim.o.number = true
 vim.o.relativenumber = true
 vim.o.wrap = false
@@ -39,14 +42,14 @@ vim.pack.add({
 })
 
 --------------------------------------------------------------------------------
--- File Picker
+-- Picker and file trees
 
 local minipick = require("mini.pick")
 
 minipick.setup({
 	mappings = {
 		choose_all = {
-			char = "<C-q>",
+			char = "<C-q>", -- Send to quickfix list
 			func = function()
 				local mappings = minipick.get_picker_opts().mappings
 				vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
@@ -56,9 +59,10 @@ minipick.setup({
 })
 
 require("oil").setup()
-require("gitsigns").setup()
+
 local harpoon = require("harpoon")
 harpoon.setup()
+
 require("neo-tree").setup({
 	enable_git_status = false,
 	popup_border_style = "rounded",
@@ -76,152 +80,6 @@ require("neo-tree").setup({
 })
 
 local snippets = require("snippets")
-
---------------------------------------------------------------------------------
--- Mappings
-
-local f = require("functions")
-
--- Files and buffers
-vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>")
-vim.keymap.set("n", "<leader>fs", ":write<CR>")
-vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format)
-vim.keymap.set("n", "<leader>hh", ":Pick help<CR>")
-vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>")
-vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
-vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
-vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
-vim.keymap.set("n", "<leader>d", ":Oil<CR>")
-vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
-vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds<CR>", { desc = "Neotree", })
-vim.keymap.set("n", "<leader>B", ":Neotree buffers left<cr>", { desc = "Toggle Neotree Document Symbols" })
-vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
-vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
-vim.keymap.set("n", "<A-h>", f.harpoon_select(1), { desc = "Harpoon Browse File (1)" })
-vim.keymap.set("n", "<A-j>", f.harpoon_select(2), { desc = "Harpoon Browse File (2)" })
-vim.keymap.set("n", "<A-k>", f.harpoon_select(3), { desc = "Harpoon Browse File (3)" })
-vim.keymap.set("n", "<A-l>", f.harpoon_select(4), { desc = "Harpoon Browse File (4)" })
-vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File (5)" })
-vim.keymap.set("n", "<leader>fw", f.grep_current_word, { desc = "Find Word at Point" })
-vim.keymap.set("n", "<leader>fW", f.grep_current_WORD, { desc = "Find WORD at Point" })
-
--- Editor
-local gitsigns = require("gitsigns")
-
-vim.keymap.set("i", "<C-f>", "<right>")
-vim.keymap.set("i", "<C-b>", "<left>")
-vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
-vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
-
-vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
-vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since , is localleader
-vim.keymap.set("n", "<leader>y", '"+y')                           -- Yank to system clipboard
-vim.keymap.set("n", "<leader>p", '"+p')                           -- Paste from system clipboard
-vim.keymap.set("v", "<leader>p", '"_d"+P')                        -- Overwrite from clipboard without overwriting clipboard registry
-vim.keymap.set("v", "<leader>P", '"_dP')                          -- Paste without overwriting the default register
-vim.keymap.set("x", "y", '"+y', s)                                -- Yank to the system clipboard in visual mode
-vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
-vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
-vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
-vim.keymap.set("n", "[c", gitsigns.prev_hunk, { desc = "Git Next Unstanged Hunk" })
-vim.keymap.set("n", "]c", gitsigns.next_hunk, { desc = "Git Previous Unstanged Hunk" })
-vim.keymap.set("n", "<leader>gr", gitsigns.reset_hunk, { desc = "Git Reset Hunk", })
-vim.keymap.set("n", "<leader>gs", gitsigns.stage_hunk, { desc = "Git Stage Hunk", })
-vim.keymap.set("n", "<leader>gS", gitsigns.stage_buffer, { desc = "Git Stage Buffer", })
-vim.keymap.set("n", "<leader>gy", gitsigns.undo_stage_hunk, { desc = "Git Undo Stage Hunk", })
-vim.keymap.set("n", "<leader>gp", gitsigns.preview_hunk_inline, { desc = "Git Preview Hunk Inline" })
-vim.keymap.set("n", "<leader>gP", gitsigns.preview_hunk, { desc = "Git Preview Hunk" })
-vim.keymap.set("n", "<leader>gb", gitsigns.blame_line, { desc = "Git blame line", })
--- vim.keymap.set("<leader>gB", function() require("agitator").git_blame_toggle() end, { desc = "Git Blame", })
-
-vim.keymap.set("n", "[e", function()
-	vim.diagnostic.jump({ count = -1, float = true })
-end)
-vim.keymap.set("n", "]e", function()
-	vim.diagnostic.jump({ count = 1, float = true })
-end)
-vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
-vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
-
--- Configure diagnostic signs with nice icons (NVChad style)
-vim.diagnostic.config({
-	signs = {
-		text = {
-			[vim.diagnostic.severity.ERROR] = "󰅙",
-			[vim.diagnostic.severity.WARN] = "",
-			[vim.diagnostic.severity.INFO] = "󰋼",
-			[vim.diagnostic.severity.HINT] = "󰌵"
-		}
-	},
-	underline = true,
-	float = { border = "single" },
-})
-
-vim.diagnostic.config {
-	-- virtual_text = { prefix = "" },
-	signs = {
-		text =
-		{
-			[vim.diagnostic.severity.ERROR] = "󰅙",
-			[vim.diagnostic.severity.WARN] = "",
-			[vim.diagnostic.severity.INFO] = "󰋼",
-			[vim.diagnostic.severity.HINT] = "󰌵"
-		}
-	},
-	underline = true,
-	float = { border = "single" },
-}
-
--- Tabs
-vim.keymap.set("n", "[w", ":tabprev<CR>")
-vim.keymap.set("n", "]w", ":tabnext<CR>")
-vim.keymap.set("n", "<leader><tab>n", ":tabnew<CR>")
-vim.keymap.set("n", "<leader><tab>d", ":tabclose<CR>")
-
--- Window
-vim.keymap.set("n", "<leader>wv", ":vsplit<CR><C-w>l")
-vim.keymap.set("n", "<leader>ws", ":split<CR><C-w>j")
-vim.keymap.set("n", "<leader>wq", ":quit<CR>")
-vim.keymap.set("n", "<leader>wo", vim.cmd.only, { desc = "Window Close other windows" })
-vim.keymap.set("n", "<leader>wQ", ":wall<CR>:qall<CR>", { desc = "Window Quit All" })
-vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
-vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
-vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
-vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
-
--- Quickfix
-vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
-vim.keymap.set("n", "[q", f.recenter_if_scrolled("cprev"), { desc = "Quickfix Prev" })
-vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Next" })
-
--- Completion keymaps
-vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { desc = 'Trigger completion' })
-vim.keymap.set('i', '<C-n>', '<C-n>', { desc = 'Next completion' })
-vim.keymap.set('i', '<C-p>', '<C-p>', { desc = 'Previous completion' })
-vim.keymap.set('i', '<C-s>', snippets.expand_snippet, { desc = 'Snippet Expand' })
-
--- Clojure
-
-vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end,
-	{ desc = "Paredit Slurp backwards" })
-vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,
-	{ desc = "Paredit Barf backwards" })
-vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,
-	{ desc = "Paredit Barf forwards" })
-vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,
-	{ desc = "Paredit Slurp forwards" })
-vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
-vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),
-	{ desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),
-	{ desc = "Paredit Wrap Element Insert Tail" })
-vim.keymap.set("n", "<localleader>i", f.paredit_wrap("( ", ")", "inner_start"),
-	{ desc = "Paredit Wrap Form Insert Head" })
-vim.keymap.set("n", "<localleader>I", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Form Insert Tail" })
-
--- UI
-vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() end, { desc = "Toggle Theme" })
 
 --------------------------------------------------------------------------------
 -- LSP / Completion
@@ -253,8 +111,9 @@ require("blink.cmp").setup({
 })
 
 --------------------------------------------------------------------------------
--- UI
+-- UI / Editor
 
+-- Use NvChad's statusline and base46 colorschemes. See ./lua/chadrc.lua for options
 require("nvchad")
 vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
 
@@ -272,19 +131,15 @@ local base46_integrations = {
 	-- "telescope",
 }
 
--- Only run once to create files in base46 cache path.
-local function integration_files_missing()
-	for _, name in ipairs(base46_integrations) do
-		local file_path = vim.g.base46_cache .. name
-		if vim.fn.filereadable(file_path) == 0 then
-			return true
-		end
-	end
-	return false
-end
-
-if integration_files_missing() then
-	print("compiling")
+-- Compile base46 when files are missing. Should only be ran on install
+if vim.tbl_contains(
+	vim.tbl_map(
+		function(name)
+			return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
+		end,
+		base46_integrations
+	), false) then
+	print("Compiling base46 integrations")
 	require("base46").compile()
 end
 
@@ -294,21 +149,35 @@ end
 
 vim.cmd.colorscheme("nvchad")
 
+-- Configure diagnostic signs with nice icons like in NvChad
+vim.diagnostic.config {
+	-- virtual_text = { prefix = "" },
+	signs = {
+		text =
+		{
+			[vim.diagnostic.severity.ERROR] = "󰅙",
+			[vim.diagnostic.severity.WARN] = "",
+			[vim.diagnostic.severity.INFO] = "󰋼",
+			[vim.diagnostic.severity.HINT] = "󰌵"
+		}
+	},
+	underline = true,
+	float = { border = "single" },
+}
+
 require('nvim-treesitter.configs').setup({
-  ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
+	ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
 	highlight = {
 		enable = true,
 	},
-  indent = { enable = true },
+	indent = { enable = true },
 })
 
--- Highlight yanked text
-vim.api.nvim_create_autocmd("TextYankPost", {
-	pattern = "*",
-	callback = function()
-		vim.highlight.on_yank({ timeout = 140 })
-	end,
-})
+local gitsigns = require("gitsigns")
+gitsigns.setup()
+
+--------------------------------------------------------------------------------
+-- AuCommands
 
 -- Cleanup whitespace on save
 vim.api.nvim_create_autocmd("BufWritePre", {
@@ -328,11 +197,19 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	command = "silent! normal! g`\"zzzv"
 })
 
+-- Highlight yanked text
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
+	callback = function()
+		vim.highlight.on_yank({ timeout = 140 })
+	end,
+})
+
 --------------------------------------------------------------------------------
 -- Clojure
 
-vim.g["conjure#mapping#doc_word"] = false
-vim.g["conjure#highlight#enabled"] = true
+vim.g["conjure#mapping#doc_word"] = false -- Disables annoying 'K' binding
+vim.g["conjure#highlight#enabled"] = true -- Highlight evaluated forms
 vim.g.clojure_align_multiline_strings = 1
 vim.g.clojure_align_subforms = 0
 vim.g.clojure_fuzzy_indent = 1
@@ -342,10 +219,107 @@ vim.g.clojure_fuzzy_indent_blacklist = {
 }
 
 local paredit = require("nvim-paredit")
+paredit.setup()
 
-require("nvim-paredit").setup({
-	keys = {
-		["<localleader>o"] = false,
-		["<localleader>r"] = { paredit.api.raise_form, "Raise form" },
-	}
-})
+--------------------------------------------------------------------------------
+-- Mappings
+
+local f = require("functions")
+
+-- Files and buffers
+vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>")
+vim.keymap.set("n", "<leader>fs", ":write<CR>")
+vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format)
+vim.keymap.set("n", "<leader>hh", ":Pick help<CR>")
+vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>")
+vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
+vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
+vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
+vim.keymap.set("n", "<leader>d", ":Oil<CR>")
+vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>B", ":Neotree buffers left<cr>", { desc = "Toggle Neotree Document Symbols" })
+vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
+vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
+vim.keymap.set("n", "<A-h>", f.harpoon_select(1), { desc = "Harpoon Browse File (1)" })
+vim.keymap.set("n", "<A-j>", f.harpoon_select(2), { desc = "Harpoon Browse File (2)" })
+vim.keymap.set("n", "<A-k>", f.harpoon_select(3), { desc = "Harpoon Browse File (3)" })
+vim.keymap.set("n", "<A-l>", f.harpoon_select(4), { desc = "Harpoon Browse File (4)" })
+vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File (5)" })
+vim.keymap.set("n", "<leader>fw", f.grep_current_word, { desc = "Find Word at Point" })
+vim.keymap.set("n", "<leader>fW", f.grep_current_WORD, { desc = "Find WORD at Point" })
+
+-- Tabs
+vim.keymap.set("n", "[w", ":tabprev<CR>")
+vim.keymap.set("n", "]w", ":tabnext<CR>")
+vim.keymap.set("n", "<leader><tab>n", ":tabnew<CR>")
+vim.keymap.set("n", "<leader><tab>d", ":tabclose<CR>")
+
+-- Windows
+vim.keymap.set("n", "<leader>wv", ":vsplit<CR><C-w>l")
+vim.keymap.set("n", "<leader>ws", ":split<CR><C-w>j")
+vim.keymap.set("n", "<leader>wq", ":quit<CR>")
+vim.keymap.set("n", "<leader>wo", vim.cmd.only, { desc = "Window Close other windows" })
+vim.keymap.set("n", "<leader>wQ", ":wall<CR>:qall<CR>", { desc = "Window Quit All" })
+vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
+vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
+vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
+vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
+
+-- Editing
+vim.keymap.set("i", "<C-f>", "<right>")
+vim.keymap.set("i", "<C-b>", "<left>")
+vim.keymap.set('i', '<C-s>', snippets.expand_snippet, { desc = 'Snippet Expand' })
+vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
+vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
+vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
+
+-- Editor
+vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() end, { desc = "Toggle Theme" })
+vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
+vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
+vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
+
+-- Yanking and pasting
+vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
+vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
+vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
+vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
+vim.keymap.set("x", "y", '"+y', s)         -- Yank to the system clipboard in visual mode
+vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
+
+-- Git chunks
+vim.keymap.set("n", "[c", gitsigns.prev_hunk, { desc = "Git Next Unstanged Hunk" })
+vim.keymap.set("n", "]c", gitsigns.next_hunk, { desc = "Git Previous Unstanged Hunk" })
+vim.keymap.set("n", "<leader>gr", gitsigns.reset_hunk, { desc = "Git Reset Hunk", })
+vim.keymap.set("n", "<leader>gs", gitsigns.stage_hunk, { desc = "Git Stage Hunk", })
+vim.keymap.set("n", "<leader>gS", gitsigns.stage_buffer, { desc = "Git Stage Buffer", })
+vim.keymap.set("n", "<leader>gy", gitsigns.undo_stage_hunk, { desc = "Git Undo Stage Hunk", })
+vim.keymap.set("n", "<leader>gp", gitsigns.preview_hunk_inline, { desc = "Git Preview Hunk Inline" })
+vim.keymap.set("n", "<leader>gP", gitsigns.preview_hunk, { desc = "Git Preview Hunk" })
+vim.keymap.set("n", "<leader>gb", gitsigns.blame_line, { desc = "Git blame line", })
+
+-- Code / Diagnostics
+vim.keymap.set("n", "[e", function()
+	vim.diagnostic.jump({ count = -1, float = true })
+end)
+vim.keymap.set("n", "]e", function()
+	vim.diagnostic.jump({ count = 1, float = true })
+end)
+vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
+
+-- Quickfix
+vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
+vim.keymap.set("n", "[q", f.recenter_if_scrolled("cprev"), { desc = "Quickfix Prev" })
+vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Next" })
+
+-- CLojure / Lisps
+vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end, { desc = "Paredit Slurp backwards" })
+vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,  { desc = "Paredit Barf backwards" })
+vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,   { desc = "Paredit Barf forwards" })
+vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,  { desc = "Paredit Slurp forwards" })
+vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"),                      { desc = "Paredit Wrap Element ]" })
+vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"),                      { desc = "Paredit Wrap Element }" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),            { desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),               { desc = "Paredit Wrap Element Insert Tail" })
