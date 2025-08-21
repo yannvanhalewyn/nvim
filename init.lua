@@ -257,8 +257,6 @@ require("blink.cmp").setup({
 
 require("nvchad")
 vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
--- Only run once to create files in base46 cache path.
--- require("base46").compile()
 
 local base46_integrations = {
 	"blink",
@@ -273,6 +271,22 @@ local base46_integrations = {
 	-- "tbline",
 	-- "telescope",
 }
+
+-- Only run once to create files in base46 cache path.
+local function integration_files_missing()
+	for _, name in ipairs(base46_integrations) do
+		local file_path = vim.g.base46_cache .. name
+		if vim.fn.filereadable(file_path) == 0 then
+			return true
+		end
+	end
+	return false
+end
+
+if integration_files_missing() then
+	print("compiling")
+	require("base46").compile()
+end
 
 for _, name in ipairs(base46_integrations) do
 	dofile(vim.g.base46_cache .. name)
