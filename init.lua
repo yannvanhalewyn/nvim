@@ -120,8 +120,8 @@ vim.keymap.set("v", "<leader>p", '"_d"+P')                         -- Overwrite 
 vim.keymap.set("v", "<leader>P", '"_dP')                           -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y', s)                                 -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
--- vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
--- vim.keymap.set("n", "<A-C>", ":set cursorline!<CR>:set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
+vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
+vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
 vim.keymap.set("n", "[c", gitsigns.prev_hunk, { desc = "Git Next Unstanged Hunk" })
 vim.keymap.set("n", "]c", gitsigns.next_hunk, { desc = "Git Previous Unstanged Hunk" })
 vim.keymap.set("n", "<leader>gr", gitsigns.reset_hunk, { desc = "Git Reset Hunk", })
