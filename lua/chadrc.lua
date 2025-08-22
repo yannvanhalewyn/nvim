@@ -33,8 +33,6 @@ return {
 			NeogitChangeModified = { fg = "yellow" },
 			-- Shows 'deleted' in red in git status
 			NeogitChangeDeleted = { fg = "red" },
-			BlinkCmpMenuBorder = { fg = "grey" },
-			BlinkCmpDocBorder = { fg = "grey" },
 			--
 			DiffviewDiffChange = { bg = "#2d3139" },
 			DiffviewDiffAddAsDelete = { link = "DiffDelete" },
