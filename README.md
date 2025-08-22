@@ -15,23 +15,23 @@ While [NvChad](https://nvchad.com/) is an excellent Neovim distribution with fan
 
 ## Key Mappings
 
-| Mapping | Description |
-|---------|-------------|
-| `<space><space>` | Pick files |
-| `<space>x` | Grep live |
-| `<space>bb` | Pick buffers |
-| `<space>d` | Oil (file browser) |
-| `<space>n` | NeoTree |
-| `<space>ha` | Harpoon add file |
-| `<space>H` | Harpoon quick menu |
-| `Alt-hjkl;` | Harpoon select files 1-5 |
-| `<space>fs` | Save file |
-| `<space>cf` | Format buffer |
-| `<space>ca` | Code actions |
-| `gd` | Go to definition |
-| `[e` / `]e` | Previous/next diagnostic |
-| `[c` / `]c` | Previous/next git hunk |
-| `<space>gs` | Git stage hunk |
-| `<space>gr` | Git reset hunk |
-| `Alt-HJKL` | Paredit slurp/barf |
-| `,w` | Paredit wrap with parens |
+| Mapping | Mnemonic | Description |
+|---------|----------|-------------|
+| `<space><space>` | Quick access | Pick files |
+| `<space>x` | eXamine/search | Grep live |
+| `<space>bb` | Buffer Browse | Pick buffers |
+| `<space>d` | Directory | Oil (file browser) |
+| `<space>n` | NeoTree | NeoTree |
+| `<space>ha` | Harpoon Add | Harpoon add file |
+| `<space>H` | Harpoon | Harpoon quick menu |
+| `Alt-hjkl;` | Vim navigation keys | Harpoon select files 1-5 |
+| `<space>fs` | File Save | Save file |
+| `<space>cf` | Code Format | Format buffer |
+| `<space>ca` | Code Actions | Code actions |
+| `gd` | Go to Definition | Go to definition |
+| `[e` / `]e` | Error | Previous/next diagnostic |
+| `[c` / `]c` | Change/Commit | Previous/next git hunk |
+| `<space>gs` | Git Stage | Git stage hunk |
+| `<space>gr` | Git Reset | Git reset hunk |
+| `Alt-HJKL` | Vim navigation for structure | Paredit slurp/barf |
+| `,w` | Wrap | Paredit wrap with parens |

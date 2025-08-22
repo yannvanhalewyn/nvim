@@ -97,14 +97,14 @@ require("blink.cmp").setup({
 	fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
 	signature = { enabled = true },
 	keymap = {
-		-- preset = "default",
+		preset = "none", -- frees up <C-y> and <C-e>
 		["<Tab>"] = { "select_and_accept", "fallback" },
-		["<C-y>"] = { "fallback" }, -- This re-enables <C-y> in insert mode as copy from line above
-		["<C-n>"] = { "select_next" },
-		["<C-p>"] = { "select_prev" },
-		["<C-k>"] = { "select_prev", "fallback" },
-		["<C-b>"] = { "scroll_documentation_down", "fallback" },
-		["<C-f>"] = { "scroll_documentation_up", "fallback" },
+		["<C-q>"] = { "hide" },
+		["<C-n>"] = { "select_next", "fallback" },
+		["<C-p>"] = { "select_prev", "fallback" },
+		["<C-d>"] = { "show_documentation", "hide_documentation" },
+		["<C-b>"] = { "scroll_documentation_up", "fallback" },
+		["<C-f>"] = { "scroll_documentation_down", "fallback" },
 	},
 
 	completion = {
@@ -173,7 +173,7 @@ vim.diagnostic.config {
 require('nvim-treesitter.configs').setup({
 	ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
 	highlight = {
-		enable = false,
+		enable = true,
 	},
 	indent = { enable = true },
 })
@@ -274,7 +274,11 @@ vim.g.clojure_fuzzy_indent_blacklist = {
 }
 
 local paredit = require("nvim-paredit")
-paredit.setup()
+paredit.setup({
+	indent = {
+		enabled = true
+	}
+})
 
 --------------------------------------------------------------------------------
 -- Mappings
@@ -346,7 +350,12 @@ vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
 -- Editing
 vim.keymap.set("i", "<C-f>", "<right>")
 vim.keymap.set("i", "<C-b>", "<left>")
-vim.keymap.set('i', '<C-s>', snippets.expand_snippet, { desc = 'Snippet Expand' })
+vim.keymap.set('i', "<C-e>", snippets.expand_snippet, { desc = 'Snippet Expand' })
+vim.keymap.set("i", "<C-k>", vim.lsp.buf.signature_help, { desc = "LSP: Signature Help" })
+vim.keymap.set('i', "(", "()<left>")
+vim.keymap.set('i', "[", "[]<left>")
+vim.keymap.set('i', "{", "{}<left>")
+vim.keymap.set('i', '"', '""<left>')
 vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
 vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
