@@ -11,6 +11,7 @@ vim.o.swapfile = false
 vim.o.winborder = "rounded"
 vim.o.undofile = true
 vim.o.splitright = true
+vim.o.laststatus = 3 -- 2 for every window
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 
@@ -36,6 +37,7 @@ vim.pack.add({
 	-- VCS
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/linrongbin16/gitlinker.nvim" },
+	{ src = "https://github.com/sindrets/diffview.nvim" },
 	-- Util
 	{ src = "https://github.com/nvim-lua/plenary.nvim" },           -- Required by Harpoon and NvChad
 	{ src = "https://github.com/MunifTanjim/nui.nvim" },            -- Required by NeoTree
@@ -390,6 +392,10 @@ vim.keymap.set("n", "<leader>glc", ":GitLink commit file=./ rev=<c-r><c-w><cr>",
 vim.keymap.set("n", "<leader>glC", ":GitLink! commit file=./ rev=<c-r><c-w><cr>", { desc = "Git Link Commit (Open)" })
 vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff" })
 vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
+
+-- Diffview
+vim.keymap.set("n", "<leader>gd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
+vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git diff something else", })
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
