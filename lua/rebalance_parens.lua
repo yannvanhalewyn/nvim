@@ -14,7 +14,6 @@ local function count_parens_smart(text)
 
   while i <= #text do
     local char = text:sub(i, i)
-    local next_char = text:sub(i + 1, i + 1)
 
     if escape_next then
       escape_next = false
@@ -50,18 +49,15 @@ local function find_insertion_point(lines)
   return #lines, #lines[#lines]
 end
 
--- Remove excess closing parentheses from the end
 local function remove_excess_closing_parens(lines, excess)
   local removed = 0
 
-  -- Work backwards from the end
   for i = #lines, 1, -1 do
     if removed >= excess then break end
 
     local line = lines[i]
     local new_line = line
 
-    -- Remove closing parens from the end of the line
     while removed < excess and new_line:sub(-1) == ')' do
       new_line = new_line:sub(1, -2)
       removed = removed + 1
@@ -124,7 +120,7 @@ function M.setup(opts)
   local filetypes = opts.filetypes or {'clojure', 'lisp', 'scheme', 'fennel', 'janet'}
   local group = vim.api.nvim_create_augroup('ParenRebalancer', { clear = true })
 
-  vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     group = group,
     pattern = '*',
     callback = function()

@@ -2,12 +2,12 @@ local M = {}
 
 M.grep_current_word = function()
 	local word = vim.fn.expand("<cword>")
-	require("mini.pick").builtin.grep_live({ search = word })
+	require("mini.pick").builtin.grep({ pattern = word })
 end
 
 M.grep_current_WORD = function()
 	local word = vim.fn.expand("<cWORD>")
-	-- require("telescope.builtin").grep_string({ search = word})
+	require("mini.pick").builtin.grep({ pattern = word})
 end
 
 M.toggle_color_column = function()

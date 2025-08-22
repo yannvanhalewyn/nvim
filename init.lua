@@ -1,5 +1,7 @@
 --------------------------------------------------------------------------------
 -- Options
+-- Enable experimental message box: https://github.com/neovim/neovim/pull/27855
+require('vim._extui').enable({})
 
 vim.o.number = true
 vim.o.relativenumber = true
@@ -52,6 +54,7 @@ vim.pack.add({
 -- Picker and file trees
 
 local minipick = require("mini.pick")
+vim.ui.select = minipick.ui_select
 
 minipick.setup({
 	mappings = {
@@ -286,9 +289,9 @@ paredit.setup({
 local f = require("functions")
 local snippets = require("snippets")
 local zen_mode = require("zen_mode")
-require("rebalance_parens").setup({
-  filetypes = {'clojure', 'lisp', 'scheme', 'fennel'}
-})
+-- require("rebalance_parens").setup({
+--   filetypes = {'clojure', 'lisp', 'scheme', 'fennel'}
+-- })
 
 require("gitlinker").setup({
 	router = {
@@ -318,8 +321,10 @@ vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format)
 vim.keymap.set("n", "<leader>hh", ":Pick help<CR>")
 vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>")
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>")
-vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
+vim.keymap.set("n", "<leader> ", ":Pick files<CR>", { desc = "Files Find" })
+vim.keymap.set("n", "<leader>fg", ":Pick files tool='git'<CR>", { desc = "Files Git" })
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
+vim.keymap.set("n", "<leader>'", ":Pick resume<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
 vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
 vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds right<CR>", { desc = "Neotree", })

@@ -1,3 +1,6 @@
+-- Investigate this, becuase running 0.12 on old config,
+-- `NVIM_APPNAME=nvim-nvchad v ...` still colorizes Clojure code decently. It
+-- seems as thought many new highlight classes have been added somehow.
 return {
 	base46 = {
 		-- onedark, catppuccin, tokyodark, everblush, jellybeans, rxyhn, yoru
@@ -8,7 +11,7 @@ return {
 			-- ["@spell"] = { italic = true },
 			["@comment"] = { italic = true },
 			["@symbol"] = { fg = "blue" },
-			["@function"] = { fg = "yellow" },
+			-- ["@function"] = { fg = "yellow" },
 			-- Used heavily by vim diff
 			DiffAdd = { fg = "NONE", bg = "#31352b" },
 			DiffDelete = { fg = "NONE", bg = "#511c21" },
