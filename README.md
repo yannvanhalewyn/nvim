@@ -12,3 +12,26 @@ A lean and fast Neovim configuration designed for Clojure development. Inspired 
 ## Why This Config?
 
 While [NvChad](https://nvchad.com/) is an excellent Neovim distribution with fantastic UI components, this config strips away the complexity to focus on what matters most for Clojure development - speed, clarity, and simplicity.
+
+## Key Mappings
+
+| Mapping | Description |
+|---------|-------------|
+| `<space><space>` | Pick files |
+| `<space>x` | Grep live |
+| `<space>bb` | Pick buffers |
+| `<space>d` | Oil (file browser) |
+| `<space>n` | NeoTree |
+| `<space>ha` | Harpoon add file |
+| `<space>H` | Harpoon quick menu |
+| `Alt-hjkl;` | Harpoon select files 1-5 |
+| `<space>fs` | Save file |
+| `<space>cf` | Format buffer |
+| `<space>ca` | Code actions |
+| `gd` | Go to definition |
+| `[e` / `]e` | Previous/next diagnostic |
+| `[c` / `]c` | Previous/next git hunk |
+| `<space>gs` | Git stage hunk |
+| `<space>gr` | Git reset hunk |
+| `Alt-HJKL` | Paredit slurp/barf |
+| `,w` | Paredit wrap with parens |

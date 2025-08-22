@@ -5,8 +5,7 @@ return {
 		theme = "catppuccin",
 		theme_toggle = { "catppuccin", "everforest_light" },
 		hl_override = {
-			Comment = { italic = true },
-			["@spell"] = { italic = true },
+			-- ["@spell"] = { italic = true },
 			["@comment"] = { italic = true },
 			["@symbol"] = { fg = "blue" },
 			["@function"] = { fg = "yellow" },

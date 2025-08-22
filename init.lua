@@ -24,18 +24,21 @@ vim.pack.add({
 	{ src = "https://github.com/nvchad/base46" },
 	-- Editor
 	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
+	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
-	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
-	{ src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
+	{ src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
+	{ src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
+	{ src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+	-- VCS
+	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
+	{ src = "https://github.com/linrongbin16/gitlinker.nvim" },
 	-- Util
-	{ src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by Harpoon and NvChad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by NeoTree
+	{ src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by Harpoon and NvChad
+	{ src = "https://github.com/MunifTanjim/nui.nvim" }, -- Required by NeoTree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
@@ -132,12 +135,12 @@ local base46_integrations = {
 
 -- Compile base46 when files are missing. Should only be ran on install
 if vim.tbl_contains(
-	vim.tbl_map(
-		function(name)
-			return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
-		end,
-		base46_integrations
-	), false) then
+		vim.tbl_map(
+			function(name)
+				return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
+			end,
+			base46_integrations
+		), false) then
 	print("Compiling base46 integrations")
 	require("base46").compile()
 end
@@ -167,7 +170,7 @@ vim.diagnostic.config {
 require('nvim-treesitter.configs').setup({
 	ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
 	highlight = {
-		enable = true,
+		enable = false,
 	},
 	indent = { enable = true },
 })
@@ -216,7 +219,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
-vim.o.updatetime = 1000
+vim.o.updatetime = 300
 vim.api.nvim_create_autocmd("CursorHold", {
 	callback = function()
 		vim.lsp.buf.document_highlight()
@@ -251,6 +254,26 @@ paredit.setup()
 local f = require("functions")
 local snippets = require("snippets")
 local zen_mode = require("zen_mode")
+require("gitlinker").setup({
+	router = {
+        -- Usage :GitLink commit [rev=... file=./] This is a change
+		commit = {
+			["^github%.com"] = "https://github.com/"
+				.. "{_A.ORG}/"
+				.. "{_A.REPO}/"
+				.. "commit/"
+				.. "{_A.REV}"
+		},
+		-- Usage :GitLink compare file=./ rev=master..<rev>
+        compare = {
+          ["^github%.com"] = "https://github.com/"
+            .. "{_A.ORG}/"
+            .. "{_A.REPO}/"
+            .. "compare/"
+            .. "{_A.REV}"
+        },
+	}
+})
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>")
@@ -328,6 +351,20 @@ vim.keymap.set("n", "<leader>gp", gitsigns.preview_hunk_inline, { desc = "Git Pr
 vim.keymap.set("n", "<leader>gP", gitsigns.preview_hunk, { desc = "Git Preview Hunk" })
 vim.keymap.set("n", "<leader>gb", gitsigns.blame_line, { desc = "Git blame line", })
 
+-- Git link
+vim.keymap.set("n", "<leader>gll", ":GitLink current_branch<cr>", { desc = "Git Link Current Banch" })
+vim.keymap.set("v", "<leader>gll", ":GitLink current_branch<cr>", { desc = "Git Link Current Banch" })
+vim.keymap.set("n", "<leader>glL", ":GitLink! current_branch<cr>", { desc = "Git Link Current Branch and open" })
+vim.keymap.set("v", "<leader>glL", ":GitLink! current_branch<cr>", { desc = "Git Link Current Branch and open" })
+vim.keymap.set("n", "<leader>glm", ":GitLink default_branch<cr>", { desc = "Git Link Master" })
+vim.keymap.set("v", "<leader>glm", ":GitLink default_branch<cr>", { desc = "Git Link Master" })
+vim.keymap.set("n", "<leader>glM", ":GitLink! default_branch<cr>", { desc = "Git Link Master and open" })
+vim.keymap.set("v", "<leader>glM", ":GitLink! default_branch<cr>", { desc = "Git Link Master and open" })
+vim.keymap.set("n", "<leader>glc", ":GitLink commit file=./ rev=<c-r><c-w><cr>", { desc = "Git Link Commit" })
+vim.keymap.set("n", "<leader>glC", ":GitLink! commit file=./ rev=<c-r><c-w><cr>", { desc = "Git Link Commit (Open)" })
+vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff" })
+vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
+
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
 	vim.diagnostic.jump({ count = -1, float = true })
@@ -344,11 +381,17 @@ vim.keymap.set("n", "[q", f.recenter_if_scrolled("cprev"), { desc = "Quickfix Pr
 vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Next" })
 
 -- CLojure / Lisps
-vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end, { desc = "Paredit Slurp backwards" })
-vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,  { desc = "Paredit Barf backwards" })
-vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,   { desc = "Paredit Barf forwards" })
-vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,  { desc = "Paredit Slurp forwards" })
-vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"),                      { desc = "Paredit Wrap Element ]" })
-vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"),                      { desc = "Paredit Wrap Element }" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),            { desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),               { desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end,
+	{ desc = "Paredit Slurp backwards" })
+vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,
+	{ desc = "Paredit Barf backwards" })
+vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,
+	{ desc = "Paredit Barf forwards" })
+vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,
+	{ desc = "Paredit Slurp forwards" })
+vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
+vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),
+	{ desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),
+	{ desc = "Paredit Wrap Element Insert Tail" })
