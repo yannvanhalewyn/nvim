@@ -27,14 +27,15 @@ vim.pack.add({
 	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, Neotree and nvchad
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
 	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
+	{ src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
 	-- Util
-	{ src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon and nvchad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by neotree
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by Harpoon and NvChad
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by NeoTree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
@@ -69,7 +70,7 @@ require("neo-tree").setup({
 	filesystem = {
 		hijack_netrw_behavior = "disabled",
 		window = {
-			position = "right",
+			position = "left",
 			mappings = {
 				["<tab>"] = "open",
 				["s"] = "open_split",
@@ -78,8 +79,6 @@ require("neo-tree").setup({
 		}
 	},
 })
-
-local snippets = require("snippets")
 
 --------------------------------------------------------------------------------
 -- LSP / Completion
@@ -176,6 +175,18 @@ require('nvim-treesitter.configs').setup({
 local gitsigns = require("gitsigns")
 gitsigns.setup()
 
+require("refjump").setup({
+	highlights = {
+		enable = false
+	},
+	integrations = {
+		demicolon = {
+			enable = false
+		}
+	},
+	verbose = false
+})
+
 --------------------------------------------------------------------------------
 -- AuCommands
 
@@ -205,6 +216,19 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+vim.o.updatetime = 200
+vim.api.nvim_create_autocmd("CursorHold", {
+	callback = function()
+		vim.lsp.buf.document_highlight()
+	end
+})
+
+vim.api.nvim_create_autocmd("CursorMoved", {
+	callback = function()
+		vim.lsp.buf.clear_references()
+	end
+})
+
 --------------------------------------------------------------------------------
 -- Clojure
 
@@ -225,6 +249,7 @@ paredit.setup()
 -- Mappings
 
 local f = require("functions")
+local snippets = require("snippets")
 local zen_mode = require("zen_mode")
 
 -- Files and buffers
@@ -238,7 +263,7 @@ vim.keymap.set("n", "<leader> ", ":Pick files<CR>")
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
 vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
-vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds right<CR>", { desc = "Neotree", })
 vim.keymap.set("n", "<leader>B", ":Neotree buffers left<cr>", { desc = "Toggle Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
 vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
@@ -287,7 +312,7 @@ vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
 vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
 vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
-vim.keymap.set("x", "y", '"+y', s)         -- Yank to the system clipboard in visual mode
+vim.keymap.set("x", "y", '"+y')            -- Yank to the system clipboard in visual mode
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP Go to definition" })
 
 -- Git chunks
