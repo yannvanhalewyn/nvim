@@ -24,22 +24,23 @@ vim.pack.add({
 	{ src = "https://github.com/nvchad/base46" },
 	-- Editor
 	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+	{ src = "https://github.com/tpope/vim-repeat" },                -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },     -- Used by Oil.nvim, NeoTree and NvChad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-	{ src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
-	{ src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
-	{ src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
+	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
+	{ src = "https://github.com/mawkler/refjump.nvim" },            -- Jump LSP references in buffer with [r and ]r
 	-- VCS
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/linrongbin16/gitlinker.nvim" },
 	-- Util
-	{ src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by Harpoon and NvChad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" }, -- Required by NeoTree
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },           -- Required by Harpoon and NvChad
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },            -- Required by NeoTree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
+	{ src = "https://github.com/julienvincent/hunk.nvim" },         -- Used to execute interactive operations with Jujutusu
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
 	{ src = "https://github.com/julienvincent/nvim-paredit" },
@@ -178,6 +179,31 @@ require('nvim-treesitter.configs').setup({
 local gitsigns = require("gitsigns")
 gitsigns.setup()
 
+require("hunk").setup({
+	keys = {
+		global = {
+			quit = { "q" },
+			accept = { "<C-c><C-c>" },
+			focus_tree = { "<leader>n" },
+		},
+
+		tree = {
+			toggle_node = { "o" },
+			expand_node = { "l", "<Right>" },
+			collapse_node = { "h", "<Left>" },
+			open_file = { "<Cr>" },
+			toggle_file = { "s" },
+		},
+
+		diff = {
+			-- toggles both left and right diff on line.
+			-- Use `toggle_line` if you desire to select only one side.
+			toggle_line_pair = { "s" },
+			toggle_hunk = { "S" },
+		},
+	},
+})
+
 require("refjump").setup({
 	-- highlights = {
 	-- 	enable = false
@@ -256,7 +282,7 @@ local snippets = require("snippets")
 local zen_mode = require("zen_mode")
 require("gitlinker").setup({
 	router = {
-        -- Usage :GitLink commit [rev=... file=./] This is a change
+		-- Usage :GitLink commit [rev=... file=./] This is a change
 		commit = {
 			["^github%.com"] = "https://github.com/"
 				.. "{_A.ORG}/"
@@ -265,13 +291,13 @@ require("gitlinker").setup({
 				.. "{_A.REV}"
 		},
 		-- Usage :GitLink compare file=./ rev=master..<rev>
-        compare = {
-          ["^github%.com"] = "https://github.com/"
-            .. "{_A.ORG}/"
-            .. "{_A.REPO}/"
-            .. "compare/"
-            .. "{_A.REV}"
-        },
+		compare = {
+			["^github%.com"] = "https://github.com/"
+				.. "{_A.ORG}/"
+				.. "{_A.REPO}/"
+				.. "compare/"
+				.. "{_A.REV}"
+		},
 	}
 })
 
