@@ -30,7 +30,6 @@ vim.pack.add({
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },     -- Used by Oil.nvim, NeoTree and NvChad
 	{ src = "https://github.com/echasnovski/mini.pick" },
-	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
 	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
 	{ src = "https://github.com/mawkler/refjump.nvim" },            -- Jump LSP references in buffer with [r and ]r
