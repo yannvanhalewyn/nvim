@@ -176,9 +176,9 @@ local gitsigns = require("gitsigns")
 gitsigns.setup()
 
 require("refjump").setup({
-	highlights = {
-		enable = false
-	},
+	-- highlights = {
+	-- 	enable = false
+	-- },
 	integrations = {
 		demicolon = {
 			enable = false
@@ -216,7 +216,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
-vim.o.updatetime = 200
+vim.o.updatetime = 1000
 vim.api.nvim_create_autocmd("CursorHold", {
 	callback = function()
 		vim.lsp.buf.document_highlight()
@@ -306,6 +306,8 @@ vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
 vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
+vim.keymap.set("n", "<leader>tr", "<cmd>set rnu!<CR>", { desc = "Toggle Relative number" })
+vim.keymap.set("n", "<leader>tf", ":set formatexpr=<cr>", { desc = "Toggle Format Expression" })
 
 -- Yanking and pasting
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
