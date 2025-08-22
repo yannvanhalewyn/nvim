@@ -21,20 +21,20 @@ vim.pack.add({
 	-- UI
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/nvchad/ui" },
-	{ src = "https://github.com/nvchad/base46" }, -- run once: require("base46").load_all_highlights()
+	{ src = "https://github.com/nvchad/base46" },
 	-- Editor
 	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+	{ src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
 	{ src = "https://github.com/stevearc/oil.nvim" },
 	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim and nvchad
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, Neotree and nvchad
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-	{ src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
-	{ src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
+	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
+	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
 	-- Util
-	{ src = "https://github.com/nvim-lua/plenary.nvim" }, -- Required by harpoon2 and nvchad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" }, -- Required by neotree
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },       -- Required by harpoon and nvchad
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },        -- Required by neotree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	-- Lang
 	{ src = "https://github.com/Olical/conjure" },
@@ -225,6 +225,7 @@ paredit.setup()
 -- Mappings
 
 local f = require("functions")
+local zen_mode = require("zen_mode")
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>")
@@ -279,6 +280,7 @@ vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() en
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
+vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 
 -- Yanking and pasting
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
