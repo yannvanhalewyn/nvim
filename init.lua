@@ -5,7 +5,8 @@ vim.o.number = true
 vim.o.relativenumber = true
 vim.o.wrap = false
 vim.o.signcolumn = "yes"
-vim.o.shiftwidth = 4
+vim.o.shiftwidth = 2
+vim.o.expandtab = true
 vim.o.tabstop = 4
 vim.o.swapfile = false
 vim.o.winborder = "rounded"
@@ -285,6 +286,10 @@ paredit.setup({
 local f = require("functions")
 local snippets = require("snippets")
 local zen_mode = require("zen_mode")
+require("rebalance_parens").setup({
+  filetypes = {'clojure', 'lisp', 'scheme', 'fennel'}
+})
+
 require("gitlinker").setup({
 	router = {
 		-- Usage :GitLink commit [rev=... file=./] This is a change
