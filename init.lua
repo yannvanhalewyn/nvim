@@ -45,9 +45,11 @@ vim.pack.add({
 	{ src = "https://github.com/MunifTanjim/nui.nvim" },            -- Required by NeoTree
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 	{ src = "https://github.com/julienvincent/hunk.nvim" },         -- Used to execute interactive operations with Jujutusu
-	-- Lang
+	-- Clojure
 	{ src = "https://github.com/Olical/conjure" },
 	{ src = "https://github.com/julienvincent/nvim-paredit" },
+    { src = "https://github.com/NickvanDyke/opencode.nvim" }
+
 })
 
 --------------------------------------------------------------------------------
@@ -445,3 +447,14 @@ vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),
 	{ desc = "Paredit Wrap Element Insert Head" })
 vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),
 	{ desc = "Paredit Wrap Element Insert Tail" })
+
+-- Opencode
+vim.keymap.set("n", "<leader>oA", function() require('opencode').ask() end, { desc = 'Ask opencode' })
+vim.keymap.set("n", "<leader>oa", function() require('opencode').ask('@cursor: ') end, { desc = 'Ask opencode about this' })
+vim.keymap.set("v", "<leader>oa", function() require('opencode').ask('@selection: ') end, { desc = 'Ask opencode about selection' })
+vim.keymap.set("n", "<leader>ot", function() require('opencode').toggle() end, { desc = 'Toggle embedded opencode' })
+vim.keymap.set("n", "<leader>on", function() require('opencode').command('session_new') end, { desc = 'New session' })
+vim.keymap.set("n", "<leader>oy", function() require('opencode').command('messages_copy') end, { desc = 'Copy last message' })
+vim.keymap.set("n", "<S-C-u>",    function() require('opencode').command('messages_half_page_up') end, { desc = 'Scroll messages up' })
+vim.keymap.set("n", "<S-C-d>",    function() require('opencode').command('messages_half_page_down') end, { desc = 'Scroll messages down' })
+vim.keymap.set({ "n", "v" }, "<leader>op", function() require('opencode').select_prompt() end, { desc = 'Select prompt'})
