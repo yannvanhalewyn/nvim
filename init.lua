@@ -22,34 +22,33 @@ vim.g.maplocalleader = ","
 -- Require Plugins
 
 vim.pack.add({
-	-- UI
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
-	{ src = "https://github.com/nvchad/ui" },
-	{ src = "https://github.com/nvchad/base46" },
-	-- Editor
-	{ src = "https://github.com/tpope/vim-surround" },
-	{ src = "https://github.com/tpope/vim-repeat" },                -- Make surround repeatable
-	{ src = "https://github.com/stevearc/oil.nvim" },
-	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },     -- Used by Oil.nvim, NeoTree and NvChad
-	{ src = "https://github.com/echasnovski/mini.pick" },
-	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
-	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
-	{ src = "https://github.com/mawkler/refjump.nvim" },            -- Jump LSP references in buffer with [r and ]r
-	-- VCS
-	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
-	{ src = "https://github.com/linrongbin16/gitlinker.nvim" },
-	{ src = "https://github.com/sindrets/diffview.nvim" },
-	-- Util
-	{ src = "https://github.com/nvim-lua/plenary.nvim" },           -- Required by Harpoon and NvChad
-	{ src = "https://github.com/MunifTanjim/nui.nvim" },            -- Required by NeoTree
-	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
-	{ src = "https://github.com/julienvincent/hunk.nvim" },         -- Used to execute interactive operations with Jujutusu
-	-- Clojure
-	{ src = "https://github.com/Olical/conjure" },
-	{ src = "https://github.com/julienvincent/nvim-paredit" },
-    { src = "https://github.com/NickvanDyke/opencode.nvim" }
-
+  -- UI
+  { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
+  { src = "https://github.com/nvchad/ui" },
+  { src = "https://github.com/nvchad/base46" },
+  -- Editor
+  { src = "https://github.com/tpope/vim-surround" },
+  { src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+  { src = "https://github.com/stevearc/oil.nvim" },
+  { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
+  { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
+  { src = "https://github.com/echasnovski/mini.pick" },
+  { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
+  { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
+  { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+  -- VCS
+  { src = "https://github.com/lewis6991/gitsigns.nvim" },
+  { src = "https://github.com/linrongbin16/gitlinker.nvim" },
+  { src = "https://github.com/sindrets/diffview.nvim" },
+  -- Util
+  { src = "https://github.com/nvim-lua/plenary.nvim" },   -- Required by Harpoon and NvChad
+  { src = "https://github.com/MunifTanjim/nui.nvim" },    -- Required by NeoTree
+  { src = "https://github.com/christoomey/vim-tmux-navigator" },
+  { src = "https://github.com/julienvincent/hunk.nvim" }, -- Used to execute interactive operations with Jujutusu
+  -- Clojure
+  { src = "https://github.com/Olical/conjure" },
+  { src = "https://github.com/julienvincent/nvim-paredit" },
+  { src = "https://github.com/NickvanDyke/opencode.nvim" }
 })
 
 --------------------------------------------------------------------------------
@@ -59,15 +58,15 @@ local minipick = require("mini.pick")
 vim.ui.select = minipick.ui_select
 
 minipick.setup({
-	mappings = {
-		choose_all = {
-			char = "<C-q>", -- Send to quickfix list
-			func = function()
-				local mappings = minipick.get_picker_opts().mappings
-				vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
-			end
-		},
-	},
+  mappings = {
+    choose_all = {
+      char = "<C-q>", -- Send to quickfix list
+      func = function()
+        local mappings = minipick.get_picker_opts().mappings
+        vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
+      end
+    },
+  },
 })
 
 require("oil").setup()
@@ -76,19 +75,19 @@ local harpoon = require("harpoon")
 harpoon.setup()
 
 require("neo-tree").setup({
-	enable_git_status = false,
-	popup_border_style = "rounded",
-	filesystem = {
-		hijack_netrw_behavior = "disabled",
-		window = {
-			position = "left",
-			mappings = {
-				["<tab>"] = "open",
-				["s"] = "open_split",
-				["v"] = "open_vsplit",
-			}
-		}
-	},
+  enable_git_status = false,
+  popup_border_style = "rounded",
+  filesystem = {
+    hijack_netrw_behavior = "disabled",
+    window = {
+      position = "left",
+      mappings = {
+        ["<tab>"] = "open",
+        ["s"] = "open_split",
+        ["v"] = "open_vsplit",
+      }
+    }
+  },
 })
 
 --------------------------------------------------------------------------------
@@ -99,25 +98,25 @@ vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 require("blink.cmp").setup({
-	fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
-	signature = { enabled = true },
-	keymap = {
-		preset = "none", -- frees up <C-y> and <C-e>
-		["<Tab>"] = { "select_and_accept", "fallback" },
-		["<C-q>"] = { "hide" },
-		["<C-n>"] = { "select_next", "fallback" },
-		["<C-p>"] = { "select_prev", "fallback" },
-		["<C-d>"] = { "show_documentation", "hide_documentation" },
-		["<C-b>"] = { "scroll_documentation_up", "fallback" },
-		["<C-f>"] = { "scroll_documentation_down", "fallback" },
-	},
+  fuzzy = { implementation = "prefer_rust_with_warning" }, -- "prefer_rust_with_warning"
+  signature = { enabled = true },
+  keymap = {
+    preset = "none", -- frees up <C-y> and <C-e>
+    ["<Tab>"] = { "select_and_accept", "fallback" },
+    ["<C-q>"] = { "hide" },
+    ["<C-n>"] = { "select_next", "fallback" },
+    ["<C-p>"] = { "select_prev", "fallback" },
+    ["<C-d>"] = { "show_documentation", "hide_documentation" },
+    ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+    ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+  },
 
-	completion = {
-		documentation = {
-			auto_show = true,
-			auto_show_delay_ms = 0,
-		},
-	},
+  completion = {
+    documentation = {
+      auto_show = true,
+      auto_show_delay_ms = 0,
+    },
+  },
 })
 
 --------------------------------------------------------------------------------
@@ -128,99 +127,99 @@ require("nvchad")
 vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
 
 local base46_integrations = {
-	"blink",
-	"defaults",
-	"devicons",
-	"git",
-	"lsp",
-	-- "nvimtree",
-	"statusline",
-	"syntax",
-	"treesitter",
-	-- "tbline",
-	-- "telescope",
+  "blink",
+  "defaults",
+  "devicons",
+  "git",
+  "lsp",
+  -- "nvimtree",
+  "statusline",
+  "syntax",
+  "treesitter",
+  -- "tbline",
+  -- "telescope",
 }
 
 -- Compile base46 when files are missing. Should only be ran on install
 if vim.tbl_contains(
-		vim.tbl_map(
-			function(name)
-				return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
-			end,
-			base46_integrations
-		), false) then
-	print("Compiling base46 integrations")
-	require("base46").compile()
+      vim.tbl_map(
+        function(name)
+          return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
+        end,
+        base46_integrations
+      ), false) then
+  print("Compiling base46 integrations")
+  require("base46").compile()
 end
 
 for _, name in ipairs(base46_integrations) do
-	dofile(vim.g.base46_cache .. name)
+  dofile(vim.g.base46_cache .. name)
 end
 
 vim.cmd.colorscheme("nvchad")
 
 -- Configure diagnostic signs with nice icons like in NvChad
 vim.diagnostic.config {
-	-- virtual_text = { prefix = "" },
-	signs = {
-		text =
-		{
-			[vim.diagnostic.severity.ERROR] = "󰅙",
-			[vim.diagnostic.severity.WARN] = "",
-			[vim.diagnostic.severity.INFO] = "󰋼",
-			[vim.diagnostic.severity.HINT] = "󰌵"
-		}
-	},
-	underline = true,
-	float = { border = "single" },
+  -- virtual_text = { prefix = "" },
+  signs = {
+    text =
+    {
+      [vim.diagnostic.severity.ERROR] = "󰅙",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.INFO] = "󰋼",
+      [vim.diagnostic.severity.HINT] = "󰌵"
+    }
+  },
+  underline = true,
+  float = { border = "single" },
 }
 
 require('nvim-treesitter.configs').setup({
-	ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
-	highlight = {
-		enable = true,
-	},
-	indent = { enable = true },
+  ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
+  highlight = {
+    enable = true,
+  },
+  indent = { enable = true },
 })
 
 local gitsigns = require("gitsigns")
 gitsigns.setup()
 
 require("hunk").setup({
-	keys = {
-		global = {
-			quit = { "q" },
-			accept = { "<C-c><C-c>" },
-			focus_tree = { "<leader>n" },
-		},
+  keys = {
+    global = {
+      quit = { "q" },
+      accept = { "<C-c><C-c>" },
+      focus_tree = { "<leader>n" },
+    },
 
-		tree = {
-			toggle_node = { "o" },
-			expand_node = { "l", "<Right>" },
-			collapse_node = { "h", "<Left>" },
-			open_file = { "<Cr>" },
-			toggle_file = { "s" },
-		},
+    tree = {
+      toggle_node = { "o" },
+      expand_node = { "l", "<Right>" },
+      collapse_node = { "h", "<Left>" },
+      open_file = { "<Cr>" },
+      toggle_file = { "s" },
+    },
 
-		diff = {
-			-- toggles both left and right diff on line.
-			-- Use `toggle_line` if you desire to select only one side.
-			toggle_line_pair = { "s" },
-			toggle_hunk = { "S" },
-		},
-	},
+    diff = {
+      -- toggles both left and right diff on line.
+      -- Use `toggle_line` if you desire to select only one side.
+      toggle_line_pair = { "s" },
+      toggle_hunk = { "S" },
+    },
+  },
 })
 
 require("refjump").setup({
-	-- highlights = {
-	-- 	enable = false
-	-- },
-	integrations = {
-		demicolon = {
-			enable = false
-		}
-	},
-	verbose = false
+  -- highlights = {
+  -- 	enable = false
+  -- },
+  integrations = {
+    demicolon = {
+      enable = false
+    }
+  },
+  verbose = false
 })
 
 --------------------------------------------------------------------------------
@@ -228,41 +227,43 @@ require("refjump").setup({
 
 -- Cleanup whitespace on save
 vim.api.nvim_create_autocmd("BufWritePre", {
-	pattern = "*",
-	callback = function()
-		local save_cursor = vim.fn.getpos(".")
-		-- pcall catches errors
-		pcall(function() vim.cmd [[%s/\s\+$//e]] end)
-		vim.fn.setpos(".", save_cursor)
-	end,
+  pattern = "*",
+  callback = function()
+    local save_cursor = vim.fn.getpos(".")
+    -- pcall catches errors
+    pcall(function() vim.cmd [[%s/\s\+$//e]] end)
+    vim.fn.setpos(".", save_cursor)
+  end,
 })
 
 -- Reopen buffer at last stored position
 vim.api.nvim_create_autocmd("BufReadPost", {
-	pattern = "*",
-	-- silent! because may fail with truncated file before stored point
-	command = "silent! normal! g`\"zzzv"
+  pattern = "*",
+  -- silent! because may fail with truncated file before stored point
+  command = "silent! normal! g`\"zzzv"
 })
 
 -- Highlight yanked text
+---@diagnostic disable-next-line: param-type-mismatch
 vim.api.nvim_create_autocmd("TextYankPost", {
-	pattern = "*",
-	callback = function()
-		vim.highlight.on_yank({ timeout = 140 })
-	end,
+  pattern = "*",
+  callback = function()
+    vim.highlight.on_yank({ timeout = 140 })
+  end,
 })
 
+-- Highlight LSP references after 300ms
 vim.o.updatetime = 300
 vim.api.nvim_create_autocmd("CursorHold", {
-	callback = function()
-		vim.lsp.buf.document_highlight()
-	end
+  callback = function()
+    vim.lsp.buf.document_highlight()
+  end
 })
 
 vim.api.nvim_create_autocmd("CursorMoved", {
-	callback = function()
-		vim.lsp.buf.clear_references()
-	end
+  callback = function()
+    vim.lsp.buf.clear_references()
+  end
 })
 
 --------------------------------------------------------------------------------
@@ -275,14 +276,14 @@ vim.g.clojure_align_subforms = 0
 vim.g.clojure_fuzzy_indent = 1
 vim.g.clojure_fuzzy_indent_patterns = { ".*" }
 vim.g.clojure_fuzzy_indent_blacklist = {
-	"^or$", "^and$", "=", "^+$", "^-$", "^str$"
+  "^or$", "^and$", "=", "^+$", "^-$", "^str$"
 }
 
 local paredit = require("nvim-paredit")
 paredit.setup({
-	indent = {
-		enabled = true
-	}
+  indent = {
+    enabled = true
+  }
 })
 
 --------------------------------------------------------------------------------
@@ -296,24 +297,24 @@ local zen_mode = require("zen_mode")
 -- })
 
 require("gitlinker").setup({
-	router = {
-		-- Usage :GitLink commit [rev=... file=./] This is a change
-		commit = {
-			["^github%.com"] = "https://github.com/"
-				.. "{_A.ORG}/"
-				.. "{_A.REPO}/"
-				.. "commit/"
-				.. "{_A.REV}"
-		},
-		-- Usage :GitLink compare file=./ rev=master..<rev>
-		compare = {
-			["^github%.com"] = "https://github.com/"
-				.. "{_A.ORG}/"
-				.. "{_A.REPO}/"
-				.. "compare/"
-				.. "{_A.REV}"
-		},
-	}
+  router = {
+    -- Usage :GitLink commit [rev=... file=./] This is a change
+    commit = {
+      ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/"
+          .. "commit/"
+          .. "{_A.REV}"
+    },
+    -- Usage :GitLink compare file=./ rev=master..<rev>
+    compare = {
+      ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/"
+          .. "compare/"
+          .. "{_A.REV}"
+    },
+  }
 })
 
 -- Files and buffers
@@ -419,10 +420,10 @@ vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git d
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
-	vim.diagnostic.jump({ count = -1, float = true })
+  vim.diagnostic.jump({ count = -1, float = true })
 end)
 vim.keymap.set("n", "]e", function()
-	vim.diagnostic.jump({ count = 1, float = true })
+  vim.diagnostic.jump({ count = 1, float = true })
 end)
 vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
@@ -433,20 +434,14 @@ vim.keymap.set("n", "[q", f.recenter_if_scrolled("cprev"), { desc = "Quickfix Pr
 vim.keymap.set("n", "]q", f.recenter_if_scrolled("cnext"), { desc = "Quickfix Next" })
 
 -- CLojure / Lisps
-vim.keymap.set("n", "<A-H>", function() require("nvim-paredit").api.slurp_backwards() end,
-	{ desc = "Paredit Slurp backwards" })
-vim.keymap.set("n", "<A-J>", function() require("nvim-paredit").api.barf_backwards() end,
-	{ desc = "Paredit Barf backwards" })
-vim.keymap.set("n", "<A-K>", function() require("nvim-paredit").api.barf_forwards() end,
-	{ desc = "Paredit Barf forwards" })
-vim.keymap.set("n", "<A-L>", function() require("nvim-paredit").api.slurp_forwards() end,
-	{ desc = "Paredit Slurp forwards" })
+vim.keymap.set("n", "<A-H>", paredit.api.slurp_backwards, { desc = "Paredit Slurp backwards" })
+vim.keymap.set("n", "<A-J>", paredit.api.barf_backwards, { desc = "Paredit Barf backwards" })
+vim.keymap.set("n", "<A-K>", paredit.api.barf_forwards, { desc = "Paredit Barf forwards" })
+vim.keymap.set("n", "<A-L>", paredit.api.slurp_forwards, { desc = "Paredit Slurp forwards" })
 vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
 vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"),
-	{ desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"),
-	{ desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
 
 -- Opencode
 vim.keymap.set("n", "<leader>oA", function() require('opencode').ask() end, { desc = 'Ask opencode' })
@@ -455,6 +450,6 @@ vim.keymap.set("v", "<leader>oa", function() require('opencode').ask('@selection
 vim.keymap.set("n", "<leader>ot", function() require('opencode').toggle() end, { desc = 'Toggle embedded opencode' })
 vim.keymap.set("n", "<leader>on", function() require('opencode').command('session_new') end, { desc = 'New session' })
 vim.keymap.set("n", "<leader>oy", function() require('opencode').command('messages_copy') end, { desc = 'Copy last message' })
-vim.keymap.set("n", "<S-C-u>",    function() require('opencode').command('messages_half_page_up') end, { desc = 'Scroll messages up' })
-vim.keymap.set("n", "<S-C-d>",    function() require('opencode').command('messages_half_page_down') end, { desc = 'Scroll messages down' })
-vim.keymap.set({ "n", "v" }, "<leader>op", function() require('opencode').select_prompt() end, { desc = 'Select prompt'})
+vim.keymap.set("n", "<S-C-u>", function() require('opencode').command('messages_half_page_up') end, { desc = 'Scroll messages up' })
+vim.keymap.set("n", "<S-C-d>", function() require('opencode').command('messages_half_page_down') end, { desc = 'Scroll messages down' })
+vim.keymap.set({ "n", "v" }, "<leader>op", function() require('opencode').select_prompt() end, { desc = 'Select prompt' })
