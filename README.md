@@ -35,3 +35,7 @@ While [NvChad](https://nvchad.com/) is an excellent Neovim distribution with fan
 | `<space>gr` | Git Reset | Git reset hunk |
 | `Alt-HJKL` | Vim navigation for structure | Paredit slurp/barf |
 | `,w` | Wrap | Paredit wrap with parens |
+
+## Troubleshooting
+
+If paredit does not seem to work in Clojure files, try reinstalling the Treesitte clojure parser using `:TSInstall clojure`.

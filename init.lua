@@ -1,7 +1,8 @@
 --------------------------------------------------------------------------------
 -- Options
 -- Enable experimental message box: https://github.com/neovim/neovim/pull/27855
-require('vim._extui').enable({})
+-- Disabled because it breaks vim.pack install
+-- require('vim._extui').enable({})
 
 vim.o.number = true
 vim.o.relativenumber = true
