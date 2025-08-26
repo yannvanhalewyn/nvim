@@ -255,15 +255,24 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- Highlight LSP references after 300ms
 vim.o.updatetime = 300
-vim.api.nvim_create_autocmd("CursorHold", {
-  callback = function()
-    vim.lsp.buf.document_highlight()
-  end
-})
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if client and client.supports_method("textDocument/documentHighlight", event.buf) then
+      vim.api.nvim_create_autocmd("CursorHold", {
+        buffer = event.buf,
+        callback = function()
+          vim.lsp.buf.document_highlight()
+        end
+      })
 
-vim.api.nvim_create_autocmd("CursorMoved", {
-  callback = function()
-    vim.lsp.buf.clear_references()
+      vim.api.nvim_create_autocmd("CursorMoved", {
+        buffer = event.buf,
+        callback = function()
+          vim.lsp.buf.clear_references()
+        end
+      })
+    end
   end
 })
 
