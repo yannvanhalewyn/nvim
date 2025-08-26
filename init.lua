@@ -16,6 +16,7 @@ vim.o.winborder = "rounded"
 vim.o.undofile = true
 vim.o.splitright = true
 vim.o.laststatus = 3 -- 2 for every window
+vim.o.ignorecase = true
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 
@@ -37,6 +38,7 @@ vim.pack.add({
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
   { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+  { src = "https://github.com/loctvl842/breadcrumb.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
@@ -44,11 +46,14 @@ vim.pack.add({
   -- Util
   { src = "https://github.com/nvim-lua/plenary.nvim" },   -- Required by Harpoon and NvChad
   { src = "https://github.com/MunifTanjim/nui.nvim" },    -- Required by NeoTree
+  { src = "https://github.com/MunifTanjim/nui.nvim" },                       -- Required by clojure-test
+  { src = "https://github.com/nvim-neotest/nvim-nio" },                      -- Required by clojure-test
   { src = "https://github.com/christoomey/vim-tmux-navigator" },
   { src = "https://github.com/julienvincent/hunk.nvim" }, -- Used to execute interactive operations with Jujutusu
   -- Clojure
   { src = "https://github.com/Olical/conjure" },
   { src = "https://github.com/julienvincent/nvim-paredit" },
+  { src = "https://github.com/julienvincent/clojure-test.nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" }
 })
 
@@ -78,6 +83,12 @@ harpoon.setup()
 require("neo-tree").setup({
   enable_git_status = false,
   popup_border_style = "rounded",
+  sources = {
+    "filesystem",
+    "buffers",
+    "git_status",
+    "document_symbols",
+  },
   filesystem = {
     hijack_netrw_behavior = "disabled",
     window = {
@@ -88,6 +99,9 @@ require("neo-tree").setup({
         ["v"] = "open_vsplit",
       }
     }
+  },
+  document_symbols = {
+    follow_cursor = true
   },
 })
 
@@ -223,6 +237,10 @@ require("refjump").setup({
   verbose = false
 })
 
+require("breadcrumb").setup({})
+require("breadcrumb").init()
+vim.cmd.highlight("BreadcrumbText guifg=white")
+
 --------------------------------------------------------------------------------
 -- AuCommands
 
@@ -258,7 +276,7 @@ vim.o.updatetime = 300
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client.supports_method("textDocument/documentHighlight", event.buf) then
+    if client and client:supports_method("textDocument/documentHighlight", event.buf) then
       vim.api.nvim_create_autocmd("CursorHold", {
         buffer = event.buf,
         callback = function()
@@ -294,6 +312,21 @@ paredit.setup({
   indent = {
     enabled = true
   }
+})
+
+require("clojure-test").setup({
+  keys = {
+    ui = {
+      expand_node = { "l", "<Right>" },
+      collapse_node = { "h", "<Left>" },
+      go_to = { "<Cr>", "gd" },
+
+      cycle_focus_forwards = "<Tab>",
+      cycle_focus_backwards = "<S-Tab>",
+
+      quit = { "q", "<Esc>" },
+    },
+  },
 })
 
 --------------------------------------------------------------------------------
@@ -340,7 +373,7 @@ vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>")
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>")
 vim.keymap.set("n", "<leader>d", ":Oil<CR>")
 vim.keymap.set("n", "<leader>n", ":Neotree<CR>", { desc = "Neotree", })
-vim.keymap.set("n", "<leader>N", ":Neotree document_symbolds right<CR>", { desc = "Neotree", })
+vim.keymap.set("n", "<leader>N", ":Neotree document_symbols right<CR>", { desc = "Neotree", })
 vim.keymap.set("n", "<leader>B", ":Neotree buffers left<cr>", { desc = "Toggle Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
 vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
@@ -351,6 +384,7 @@ vim.keymap.set("n", "<A-l>", f.harpoon_select(4), { desc = "Harpoon Browse File 
 vim.keymap.set("n", "<A-;>", f.harpoon_select(5), { desc = "Harpoon Browse File (5)" })
 vim.keymap.set("n", "<leader>fw", f.grep_current_word, { desc = "Find Word at Point" })
 vim.keymap.set("n", "<leader>fW", f.grep_current_WORD, { desc = "Find WORD at Point" })
+vim.keymap.set("n", "gt", f.show_todos, { desc = "Go TODOs" })
 
 -- Tabs
 vim.keymap.set("n", "[w", ":tabprev<CR>")
@@ -368,6 +402,7 @@ vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
 vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
 vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
 vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
+vim.keymap.set("n", "<A-i>", function() require("nvchad.term").toggle({ pos = "float", id = "floatTerm"}) end, { desc = "Terminal Toggle Floating Term" })
 
 -- Editing
 vim.keymap.set("i", "<C-f>", "<right>")
@@ -435,8 +470,9 @@ end)
 vim.keymap.set("n", "]e", function()
   vim.diagnostic.jump({ count = 1, float = true })
 end)
-vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float)
-vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
+vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Code Diagnostics" })
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Actions" })
+vim.keymap.set("n", "<leader>cr", f.copy_file_reference, { desc = "Code Copy File Reference" })
 
 -- Quickfix
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
@@ -453,6 +489,19 @@ vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}"), { desc = "Paredit Wrap El
 vim.keymap.set("n", "<A-)>", f.paredit_wrap("(", ")"), { desc = "Paredit Wrap Element )" })
 vim.keymap.set("n", "<localleader>w", f.paredit_wrap_and_insert("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
 vim.keymap.set("n", "<localleader>W", f.paredit_wrap_and_insert("(", " )", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
+
+local clj_test = require("clojure-test.api")
+-- 'ta' is overwritten by Conjure. I don't think it's possible to only
+-- disable one of them (see clojure/nrepl/init.fnl in Conjure) but we can
+-- disable all of them using
+-- vim.g["conjure#mapping#enable_defaults"] = false
+-- And rebinding the defaults that I did use.
+vim.keymap.set("n", "<localleader>tA", clj_test.run_all_tests, { desc = "Run all tests" })
+vim.keymap.set("n", "<localleader>tt", clj_test.run_tests, { desc = "Run tests" })
+vim.keymap.set("n", "<localleader>tf", clj_test.run_tests_in_ns, { desc = "Run tests in file" })
+vim.keymap.set("n", "<localleader>tl", clj_test.rerun_previous, { desc = "Rerun the most recently run tests" })
+vim.keymap.set("n", "<localleader>tL", clj_test.load_tests, { desc = "Find and load test namespaces in classpath" })
+vim.keymap.set("n", "<localleader>!", function() clj_test.analyze_exception("*e") end, { desc = "Inspect the most recent exception" })
 
 -- Opencode
 vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })

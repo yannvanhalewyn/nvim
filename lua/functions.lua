@@ -34,6 +34,29 @@ M.toggle_quickfix_window = function()
   end
 end
 
+M.show_todos = function()
+  local obsidian_root_dir = "/Users/yannvanhalewyn/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
+  local width = 80
+
+  -- vim.cmd("vsplit " .. vim.fn.getcwd() .. "/todos.md")
+  vim.cmd("vsplit " .. obsidian_root_dir .. "ArQiver/todos.md")
+  vim.cmd("vertical resize " .. width)
+
+  vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
+  vim.wo.number = false
+  vim.wo.relativenumber = false
+  vim.wo.wrap = true
+  vim.wo.linebreak = true
+end
+
+M.copy_file_reference = function()
+  local filepath = vim.fn.expand('%')
+  local line_num = vim.fn.line('.')
+  local reference = filepath .. ':' .. line_num
+  vim.fn.setreg('"', reference)
+  print('Copied: ' .. reference)
+end
+
 M.harpoon_quick_menu = function()
   local harpoon = require("harpoon")
   harpoon.ui:toggle_quick_menu(
