@@ -439,10 +439,11 @@ vim.keymap.set("n", "<A-H>", paredit.api.slurp_backwards, { desc = "Paredit Slur
 vim.keymap.set("n", "<A-J>", paredit.api.barf_backwards, { desc = "Paredit Barf backwards" })
 vim.keymap.set("n", "<A-K>", paredit.api.barf_forwards, { desc = "Paredit Barf forwards" })
 vim.keymap.set("n", "<A-L>", paredit.api.slurp_forwards, { desc = "Paredit Slurp forwards" })
-vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]", "inner_start"), { desc = "Paredit Wrap Element ]" })
-vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}", "inner_start"), { desc = "Paredit Wrap Element }" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap("(", ")", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]"), { desc = "Paredit Wrap Element ]" })
+vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}"), { desc = "Paredit Wrap Element }" })
+vim.keymap.set("n", "<A-)>", f.paredit_wrap("(", ")"), { desc = "Paredit Wrap Element )" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap_and_insert("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap_and_insert("(", " )", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
 
 -- Opencode
 vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
