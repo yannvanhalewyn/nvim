@@ -46,7 +46,7 @@ return {
 		},
 		statusline = {
 			theme = "default",
-			order = { "mode", "file", "%=", "lsp_msg", "diagnostics", "cwd", "cursor" },
+			-- order = { "mode", "file", "%=", "lsp_msg", "diagnostics", "cwd", "cursor" },
 		}
 	},
 	colorify = {
