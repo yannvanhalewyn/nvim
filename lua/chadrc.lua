@@ -1,6 +1,50 @@
 -- Investigate this, becuase running 0.12 on old config,
 -- `NVIM_APPNAME=nvim-nvchad v ...` still colorizes Clojure code decently. It
 -- seems as thought many new highlight classes have been added somehow.
+
+local function abbreviate_path(path)
+  local terms = {
+    "src",
+    "com",
+    "arqiver"
+  }
+
+  local segments = {}
+  for segment in path:gmatch("[^/]+") do
+    table.insert(segments, segment)
+  end
+
+  for i, segment in ipairs(segments) do
+    for _, term in ipairs(terms) do
+      if segment == term then
+        -- segments[i] = "%#Comment#" .. term:sub(1,1) .. "%#StatusLine#"
+        segments[i] = term:sub(1, 1)
+        break
+      end
+    end
+  end
+
+  return table.concat(segments, "/")
+end
+
+local function file_module()
+  local icon = "󰈚"
+  local path = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(vim.g.statusline_winid))
+  local name = (path == "" and "Empty ") or path:match("([^/\\]+)[/\\]*$")
+
+  if name ~= "Empty " then
+    local devicons_present, devicons = pcall(require, "nvim-web-devicons")
+
+    if devicons_present then
+      local ft_icon = devicons.get_icon(name)
+      icon = (ft_icon ~= nil and ft_icon) or icon
+    end
+  end
+
+  local relative_path = vim.fn.expand("%:~:.")
+  return "%#St_file# " .. icon .. " " .. abbreviate_path(relative_path) .. " " .. "%#St_file_sep#" .. ""
+end
+
 return {
   base46 = {
     -- onedark, catppuccin, tokyodark, everblush, jellybeans, rxyhn, yoru
@@ -48,7 +92,10 @@ return {
     },
     statusline = {
       theme = "default",
-      -- order = { "mode", "file", "%=", "lsp_msg", "diagnostics", "cwd", "cursor" },
+      order = { "mode", "file", "%=", "lsp_msg", "lsp", "diagnostics", "cwd", "cursor" },
+      modules = {
+        file = file_module
+      }
     }
   },
   colorify = {
