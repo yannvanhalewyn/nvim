@@ -55,7 +55,9 @@ vim.pack.add({
   { src = "https://github.com/Olical/conjure" },
   { src = "https://github.com/julienvincent/nvim-paredit" },
   { src = "https://github.com/julienvincent/clojure-test.nvim" },
-  { src = "https://github.com/NickvanDyke/opencode.nvim" }
+  { src = "https://github.com/NickvanDyke/opencode.nvim" },
+  -- HTTP
+  { src = "https://github.com/mistweaverco/kulala.nvim"}
 })
 
 --------------------------------------------------------------------------------
@@ -361,6 +363,9 @@ require("gitlinker").setup({
   }
 })
 
+local kulala = require("kulala")
+kulala.setup()
+
 vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
 
 -- Files and buffers
@@ -505,6 +510,10 @@ vim.keymap.set("n", "<localleader>tf", clj_test.run_tests_in_ns, { desc = "Run t
 vim.keymap.set("n", "<localleader>tl", clj_test.rerun_previous, { desc = "Rerun the most recently run tests" })
 vim.keymap.set("n", "<localleader>tL", clj_test.load_tests, { desc = "Find and load test namespaces in classpath" })
 vim.keymap.set("n", "<localleader>!", function() clj_test.analyze_exception("*e") end, { desc = "Inspect the most recent exception" })
+
+-- HTTP
+vim.keymap.set("n", "<leader>he", kulala.run, { desc = "HTTP Execute Request" })
+vim.keymap.set("n", "<leader>hse", kulala.set_selected_env, { desc = "HTTP Set Env" })
 
 -- Opencode
 vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
