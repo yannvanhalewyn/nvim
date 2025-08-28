@@ -54,7 +54,7 @@ return {
     hl_override = {
       -- ["@spell"] = { italic = true },
       ["@comment"] = { italic = true },
-      ["@symbol"] = { fg = "blue" },
+      -- ["@symbol"] = { fg = "blue" },
       -- ["@function"] = { fg = "yellow" },
       -- Used heavily by vim diff
       DiffAdd = { fg = "NONE", bg = "#31352b" },
@@ -65,13 +65,15 @@ return {
     },
 
     hl_add = {
+      ["@function.call"] = { fg = "yellow" },
+
+      -- Semantic higlights
+      ["@lsp.type.type.clojure"] = { fg = "purple" },
       ["@lsp.type.keyword.clojure"] = { fg = "blue" },
       ["@lsp.type.function.clojure"] = { fg = "yellow" },
-      ["@function.call.clojure"] = { fg = "yellow" },
-      ["function.call"] = { fg = "yellow" },
-      ["function.call.lua"] = { fg = "yellow" },
-      -- ["@function.call"] = { fg = "yellow" },
-      ["@string.special.symbol"] = { fg = "blue" },
+      ["@lsp.type.interface.clojure"] = { fg = "orange" },
+      -- This is the ':' part of the keyword
+      ["@string.special.symbol.clojure"] = { fg = "blue" },
 
       -- Deleted line in git status when not higlighted
       NeogitDiffDelete = { fg = "#e06c75" },

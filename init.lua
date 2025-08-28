@@ -43,7 +43,7 @@ vim.pack.add({
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
-  { src = "https://github.com/emmanueltouzery/agitator.nvim" },
+  { src = "https://github.com/fredehoey/tardis.nvim" },
   -- Util
   { src = "https://github.com/nvim-lua/plenary.nvim" },   -- Required by Harpoon and NvChad
   { src = "https://github.com/MunifTanjim/nui.nvim" },    -- Required by NeoTree
@@ -468,8 +468,7 @@ vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><
 -- VCS
 vim.keymap.set("n", "<leader>gd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
 vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git diff something else", })
-vim.keymap.set("n", "<leader>gf", function() require("agitator").open_file_git_branch() end, { desc = "Git Find File", })
-vim.keymap.set("n", "<leader>gt", function() require("agitator").git_time_machine() end, { desc = "Git Timemachine" })
+vim.keymap.set("n", "<leader>gt", ":Tardis<CR>", { desc = "Git Timemachine" })
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
