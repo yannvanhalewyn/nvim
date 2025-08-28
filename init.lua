@@ -38,7 +38,6 @@ vim.pack.add({
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
   { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
-  { src = "https://github.com/loctvl842/breadcrumb.nvim" },
   { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
@@ -239,10 +238,6 @@ require("refjump").setup({
   },
   verbose = false
 })
-
-require("breadcrumb").setup({})
-require("breadcrumb").init()
-vim.cmd.highlight("BreadcrumbText guifg=white")
 
 --------------------------------------------------------------------------------
 -- AuCommands
