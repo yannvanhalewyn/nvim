@@ -43,6 +43,7 @@ vim.pack.add({
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
+  { src = "https://github.com/emmanueltouzery/agitator.nvim" },
   -- Util
   { src = "https://github.com/nvim-lua/plenary.nvim" },   -- Required by Harpoon and NvChad
   { src = "https://github.com/MunifTanjim/nui.nvim" },    -- Required by NeoTree
@@ -376,6 +377,7 @@ vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live"})
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>", { desc = "Resume Find" })
 vim.keymap.set("n", "<leader>d", ":Oil<CR>", { desc = "Browse Directory" })
 vim.keymap.set("n", "<leader>N", ":Neotree<CR>", { desc = "Neotree" })
+vim.keymap.set("n", "<leader>nf", ":Neotree float<cr>", { desc = "Neotree Git Status" })
 vim.keymap.set("n", "<leader>nd", ":Neotree document_symbols right<CR>", { desc = "Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>nb", ":Neotree buffers left<cr>", { desc = "Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>ng", ":Neotree git_status left<cr>", { desc = "Neotree Git Status" })
@@ -463,9 +465,11 @@ vim.keymap.set("n", "<leader>glC", ":GitLink! commit file=./ rev=<c-r><c-w><cr>"
 vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff" })
 vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
 
--- Diffview
+-- VCS
 vim.keymap.set("n", "<leader>gd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
 vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git diff something else", })
+vim.keymap.set("n", "<leader>gf", function() require("agitator").open_file_git_branch() end, { desc = "Git Find File", })
+vim.keymap.set("n", "<leader>gt", function() require("agitator").git_time_machine() end, { desc = "Git Timemachine" })
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
