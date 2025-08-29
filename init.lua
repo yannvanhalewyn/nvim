@@ -26,19 +26,18 @@ vim.g.maplocalleader = ","
 vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
-  { src = "https://github.com/nvchad/ui" },
-  { src = "https://github.com/nvchad/base46" },
+  { src = "https://github.com/catppuccin/nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
   { src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-  { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
+  { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree
   { src = "https://github.com/echasnovski/mini.pick" },
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
   { src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
-  { src = "https://github.com/folke/which-key.nvim" },
+  -- { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
@@ -47,7 +46,7 @@ vim.pack.add({
   { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
   { src = "https://github.com/julienvincent/hunk.nvim" },      -- Execute --interactive operations with Jujutusu
   -- Util
-  { src = "https://github.com/nvim-lua/plenary.nvim" },        -- Required by Harpoon and NvChad
+  { src = "https://github.com/nvim-lua/plenary.nvim" },        -- Required by Harpoon
   { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by NeoTree
   { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by clojure-test
   { src = "https://github.com/nvim-neotest/nvim-nio" },        -- Required by clojure-test
@@ -141,41 +140,26 @@ require("blink.cmp").setup({
 --------------------------------------------------------------------------------
 -- UI / Editor
 
--- Use NvChad's statusline and base46 colorschemes. See ./lua/chadrc.lua for options
-require("nvchad")
-vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46_cache/"
+vim.cmd.colorscheme("catppuccin")
 
-local base46_integrations = {
-  "blink",
-  "defaults",
-  "devicons",
-  "git",
-  "lsp",
-  -- "nvimtree",
-  "statusline",
-  "syntax",
-  "treesitter",
-  -- "tbline",
-  -- "telescope",
+local colors = require("catppuccin.palettes.mocha")
+
+local overrides = {
+  ["@function.call"] = { fg = "yellow" },
+  -- Semantic higlights
+  ["@lsp.type.namespace.clojure"] = { fg = "maroon" },
+  ["@lsp.type.type.clojure"] = { fg = "teal" }, -- Namespace part of fn and kw
+  ["@lsp.type.keyword.clojure"] = { fg = "blue" },
+  ["@lsp.type.function.clojure"] = { fg = "yellow" },
+  ["@lsp.type.interface.clojure"] = { fg = "teal" },
+  -- This is the ':' part of the keyword
+  ["@string.special.symbol.clojure"] = { fg = "blue" },
 }
 
--- Compile base46 when files are missing. Should only be ran on install
-if vim.tbl_contains(
-      vim.tbl_map(
-        function(name)
-          return vim.fn.filereadable(vim.g.base46_cache .. name) ~= 0
-        end,
-        base46_integrations
-      ), false) then
-  print("Compiling base46 integrations")
-  require("base46").compile()
+for hl_name, config in pairs(overrides) do
+  local fg_hex = colors[config["fg"]]
+  vim.cmd.highlight(hl_name .. " guifg=" .. fg_hex)
 end
-
-for _, name in ipairs(base46_integrations) do
-  dofile(vim.g.base46_cache .. name)
-end
-
-vim.cmd.colorscheme("nvchad")
 
 -- Configure diagnostic signs with nice icons like in NvChad
 vim.diagnostic.config {
@@ -363,7 +347,7 @@ require("gitlinker").setup({
 local kulala = require("kulala")
 kulala.setup()
 
-vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
+-- vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
@@ -409,7 +393,6 @@ vim.keymap.set("n", "<C-h>", ":TmuxNavigateLeft<cr>")
 vim.keymap.set("n", "<C-j>", ":TmuxNavigateDown<cr>")
 vim.keymap.set("n", "<C-k>", ":TmuxNavigateUp<cr>")
 vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
-vim.keymap.set("n", "<A-i>", function() require("nvchad.term").toggle({ pos = "float", id = "floatTerm"}) end, { desc = "Terminal Toggle Floating Term" })
 
 -- Editing
 vim.keymap.set("i", "<C-f>", "<right>")
@@ -425,13 +408,13 @@ vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
 
 -- Editor
-vim.keymap.set("n", "<leader>tt", function() require("base46").toggle_theme() end, { desc = "Toggle Theme" })
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
 vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tr", "<cmd>set rnu!<CR>", { desc = "Toggle Relative number" })
 vim.keymap.set("n", "<leader>tf", ":set formatexpr=<cr>", { desc = "Toggle Format Expression" })
+vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { desc = "Inspect Highlight" })
 
 -- Yanking and pasting
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
