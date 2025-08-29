@@ -34,6 +34,28 @@ M.toggle_quickfix_window = function()
   end
 end
 
+-- If the cursor is on a 'filename:line-number' combination it will navigate to the
+-- file at that linenumber.
+-- Also works for filename without line-number. And for text between parenthesis.
+M.goto_file_and_lnum = function()
+  local word = vim.fn.expand("<cWORD>")
+
+  -- Try to extract content from parenthesis if any
+  local paren_context = word:match("%(([^%)]+)%)")
+  print(paren_context)
+  if paren_context then
+    word = paren_context
+  end
+
+  local file, line_num = word:match("([^:]+):(%d+)")
+  if file then
+    vim.cmd('edit ' .. file)
+    if line_num then
+      vim.cmd(line_num)
+    end
+  end
+end
+
 M.show_todos = function()
   local obsidian_root_dir = "/Users/yannvanhalewyn/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
   local width = 80

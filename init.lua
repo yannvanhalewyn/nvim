@@ -411,6 +411,7 @@ vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' i
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
+vim.keymap.set("n", "gF", f.goto_file_and_lnum, { desc = "Goto file:linenumber at cursor"})
 vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tr", "<cmd>set rnu!<CR>", { desc = "Toggle Relative number" })
 vim.keymap.set("n", "<leader>tf", ":set formatexpr=<cr>", { desc = "Toggle Format Expression" })
