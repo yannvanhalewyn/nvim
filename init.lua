@@ -147,12 +147,14 @@ local colors = require("catppuccin.palettes.mocha")
 
 local overrides = {
   ["@function.call"] = { fg = "yellow" },
+  ["@function.clojure"] = { fg = "yellow" },
+  ["@function.macro.clojure"] = { fg = "mauve" }, -- 'reify'
+  ["@type.clojure"] = { fg = "maroon" },
   -- Semantic higlights
   ["@lsp.type.namespace.clojure"] = { fg = "maroon" },
-  ["@lsp.type.type.clojure"] = { fg = "teal" }, -- Namespace part of fn and kw
+  ["@lsp.type.type.clojure"] = { fg = "maroon" }, -- Namespace part of fn and kw
   ["@lsp.type.keyword.clojure"] = { fg = "blue" },
-  ["@lsp.type.function.clojure"] = { fg = "yellow" },
-  ["@lsp.type.interface.clojure"] = { fg = "teal" },
+  ["@lsp.type.interface.clojure"] = { fg = "maroon" },
   -- This is the ':' part of the keyword
   ["@string.special.symbol.clojure"] = { fg = "blue" },
 }
@@ -161,6 +163,16 @@ for hl_name, config in pairs(overrides) do
   local fg_hex = colors[config["fg"]]
   vim.cmd.highlight(hl_name .. " guifg=" .. fg_hex)
 end
+
+-- Disable semantic HL for functions because it highlights 'defprotocol',
+-- 'reify' and functions the same way. Disabling this fg will fallback to
+-- non-semantic treesitter highlights which are more distinct.
+-- The protocol name in reify blocks is also a @lsp.type.function in clojure
+-- These resets can go when semantic HL have improved for Clojure. I want to
+-- keep semantic HL instead of disabling for now because they do give support
+-- for higlighting namespaces in keywords.
+vim.cmd.highlight("@lsp.type.function.clojure guifg=none")
+vim.cmd.highlight("@lsp.type.method.clojure guifg=none") -- methods declared in 'reify' blocks
 
 -- Configure diagnostic signs with nice icons like in NvChad
 vim.diagnostic.config {
