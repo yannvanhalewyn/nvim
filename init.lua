@@ -30,26 +30,28 @@ vim.pack.add({
   { src = "https://github.com/nvchad/base46" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
-  { src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+  { src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
   { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree and NvChad
   { src = "https://github.com/echasnovski/mini.pick" },
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
-  { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+  { src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
   { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
+  -- These packages are meant for usage with Jujutusu
+  { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
+  { src = "https://github.com/julienvincent/hunk.nvim" },      -- Execute --interactive operations with Jujutusu
   -- Util
-  { src = "https://github.com/nvim-lua/plenary.nvim" },   -- Required by Harpoon and NvChad
-  { src = "https://github.com/MunifTanjim/nui.nvim" },    -- Required by NeoTree
-  { src = "https://github.com/MunifTanjim/nui.nvim" },                       -- Required by clojure-test
-  { src = "https://github.com/nvim-neotest/nvim-nio" },                      -- Required by clojure-test
+  { src = "https://github.com/nvim-lua/plenary.nvim" },        -- Required by Harpoon and NvChad
+  { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by NeoTree
+  { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by clojure-test
+  { src = "https://github.com/nvim-neotest/nvim-nio" },        -- Required by clojure-test
   { src = "https://github.com/christoomey/vim-tmux-navigator" },
-  { src = "https://github.com/julienvincent/hunk.nvim" }, -- Used to execute interactive operations with Jujutusu
   -- Clojure
   { src = "https://github.com/Olical/conjure" },
   { src = "https://github.com/julienvincent/nvim-paredit" },
