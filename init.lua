@@ -141,7 +141,7 @@ require("blink.cmp").setup({
 -- UI / Editor
 
 vim.cmd.colorscheme("catppuccin")
-vim.cmd(":hi statusline guibg=NONE")
+require("statusline")
 
 local colors = require("catppuccin.palettes.mocha")
 
