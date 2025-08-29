@@ -34,65 +34,6 @@ M.toggle_quickfix_window = function()
   end
 end
 
--- If the cursor is on a 'filename:line-number' combination it will navigate to the
--- file at that linenumber.
--- Also works for filename without line-number. And for text between parenthesis.
-M.goto_file_and_lnum = function()
-  local word = vim.fn.expand("<cWORD>")
-
-  -- Try to extract content from parenthesis if any
-  local paren_context = word:match("%(([^%)]+)%)")
-  print(paren_context)
-  if paren_context then
-    word = paren_context
-  end
-
-  local file, line_num = word:match("([^:]+):(%d+)")
-  if file then
-    vim.cmd('edit ' .. file)
-    if line_num then
-      vim.cmd(line_num)
-    end
-  end
-end
-
-M.show_todos = function()
-  local obsidian_root_dir = "/Users/yannvanhalewyn/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
-  local width = 80
-
-  -- vim.cmd("vsplit " .. vim.fn.getcwd() .. "/todos.md")
-  vim.cmd("vsplit " .. obsidian_root_dir .. "ArQiver/todos.md")
-  vim.cmd("vertical resize " .. width)
-
-  vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
-  vim.wo.number = false
-  vim.wo.relativenumber = false
-  vim.wo.wrap = true
-  vim.wo.linebreak = true
-end
-
-M.copy_file_reference = function()
-  local filepath = vim.fn.expand('%')
-  local line_num = vim.fn.line('.')
-  local reference = filepath .. ':' .. line_num
-  vim.fn.setreg('"', reference)
-  print('Copied: ' .. reference)
-end
-
-M.harpoon_quick_menu = function()
-  local harpoon = require("harpoon")
-  harpoon.ui:toggle_quick_menu(
-    harpoon:list(),
-    { border = "rounded", title_pos = "center" }
-  )
-end
-
-M.harpoon_select = function(n)
-  return function()
-    require("harpoon"):list():select(n)
-  end
-end
-
 -- Returns a function that will call 'cmd', and execute a recenter 'zz' if and
 -- only if the new scroll position is outside of the original viewport.
 -- This allows jumping commands to keep the scroll position when staying inside
@@ -117,6 +58,65 @@ M.recenter_if_scrolled = function(cmd)
       vim.api.nvim_command('normal! zz')
     end
   end
+end
+
+M.copy_file_reference = function()
+  local filepath = vim.fn.expand('%')
+  local line_num = vim.fn.line('.')
+  local reference = filepath .. ':' .. line_num
+  vim.fn.setreg('"', reference)
+  print('Copied: ' .. reference)
+end
+
+-- If the cursor is on a 'filename:line-number' combination it will navigate to the
+-- file at that linenumber.
+-- Also works for filename without line-number. And for text between parenthesis.
+M.goto_file_and_lnum = function()
+  local word = vim.fn.expand("<cWORD>")
+
+  -- Try to extract content from parenthesis if any
+  local paren_context = word:match("%(([^%)]+)%)")
+  print(paren_context)
+  if paren_context then
+    word = paren_context
+  end
+
+  local file, line_num = word:match("([^:]+):(%d+)")
+  if file then
+    vim.cmd('edit ' .. file)
+    if line_num then
+      vim.cmd(line_num)
+    end
+  end
+end
+
+M.harpoon_quick_menu = function()
+  local harpoon = require("harpoon")
+  harpoon.ui:toggle_quick_menu(
+    harpoon:list(),
+    { border = "rounded", title_pos = "center" }
+  )
+end
+
+M.harpoon_select = function(n)
+  return function()
+    require("harpoon"):list():select(n)
+  end
+end
+
+M.show_todos = function()
+  local obsidian_root_dir = "/Users/yannvanhalewyn/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
+  local width = 80
+
+  -- vim.cmd("vsplit " .. vim.fn.getcwd() .. "/todos.md")
+  vim.cmd("vsplit " .. obsidian_root_dir .. "ArQiver/todos.md")
+  vim.cmd("vertical resize " .. width)
+
+  vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
+  vim.wo.number = false
+  vim.wo.relativenumber = false
+  vim.wo.wrap = true
+  vim.wo.linebreak = true
 end
 
 M.paredit_wrap = function(l, r, placement)
