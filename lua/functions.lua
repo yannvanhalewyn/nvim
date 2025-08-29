@@ -119,6 +119,23 @@ M.show_todos = function()
   vim.wo.linebreak = true
 end
 
+M.open_current_file_in_revision = function()
+  local current_filename = vim.fn.expand("%")
+  vim.ui.input(
+    { prompt = "Insert revision: ", default = "main" },
+    function(revision)
+      if revision then
+        vim.cmd.new("[" .. revision .. "] " .. current_filename)
+        vim.cmd("read !git show " .. revision .. ":" .. current_filename)
+        vim.cmd("setlocal readonly nomodifiable buftype=nofile bufhidden=wipe")
+        vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
+      end
+    end
+  )
+end
+
+vim.keymap.set("n", "<leader>gf", M.open_current_file_in_revision)
+
 M.paredit_wrap = function(l, r, placement)
   return function()
     local paredit = require("nvim-paredit")

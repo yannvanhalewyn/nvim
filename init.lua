@@ -125,8 +125,8 @@ require("blink.cmp").setup({
     ["<C-n>"] = { "select_next", "fallback" },
     ["<C-p>"] = { "select_prev", "fallback" },
     ["<C-d>"] = { "show_documentation", "hide_documentation" },
-    ["<C-b>"] = { "scroll_documentation_up", "fallback" },
-    ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+    ["<A-C-b>"] = { "scroll_documentation_up", "fallback" },
+    ["<A-C-f>"] = { "scroll_documentation_down", "fallback" },
   },
 
   completion = {
@@ -141,6 +141,7 @@ require("blink.cmp").setup({
 -- UI / Editor
 
 vim.cmd.colorscheme("catppuccin")
+vim.cmd(":hi statusline guibg=NONE")
 
 local colors = require("catppuccin.palettes.mocha")
 
@@ -435,6 +436,7 @@ vim.keymap.set("n", "<leader>gy", gitsigns.undo_stage_hunk, { desc = "Git Undo S
 vim.keymap.set("n", "<leader>gp", gitsigns.preview_hunk_inline, { desc = "Git Preview Hunk Inline" })
 vim.keymap.set("n", "<leader>gP", gitsigns.preview_hunk, { desc = "Git Preview Hunk" })
 vim.keymap.set("n", "<leader>gb", gitsigns.blame_line, { desc = "Git blame line", })
+vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision", })
 
 -- Git link
 vim.keymap.set("n", "<leader>gll", ":GitLink current_branch<cr>", { desc = "Git Link Current Banch" })
