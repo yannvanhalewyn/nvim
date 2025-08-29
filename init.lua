@@ -347,9 +347,6 @@ require("clojure-test").setup({
 local f = require("functions")
 local snippets = require("snippets")
 local zen_mode = require("zen_mode")
--- require("rebalance_parens").setup({
---   filetypes = {'clojure', 'lisp', 'scheme', 'fennel'}
--- })
 
 require("gitlinker").setup({
   router = {
