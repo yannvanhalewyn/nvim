@@ -215,9 +215,9 @@ require("hunk").setup({
 })
 
 require("refjump").setup({
-  -- highlights = {
-  -- 	enable = false
-  -- },
+  highlights = {
+  	enable = false
+  },
   integrations = {
     demicolon = {
       enable = false
@@ -257,7 +257,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- Highlight LSP references after 300ms
-vim.o.updatetime = 300
+vim.o.updatetime = 50
+vim.cmd.highlight("LspReferenceText gui=underline guibg=NONE")
+vim.cmd.highlight("LspReferenceRead gui=underline guibg=NONE")
+vim.cmd.highlight("LspReferenceWrite gui=underline guibg=NONE")
+
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -276,6 +280,17 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end
       })
     end
+  end
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function ()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.spell = true
   end
 })
 
