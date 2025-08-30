@@ -10,6 +10,9 @@ local snippets = {
 end]]
   },
   clojure = {
+    sys = "integrant.repl.state/system",
+    refresh = "(clojure.tools.namespace.repl/refresh)",
+    ra = "(clojure.tools.namespace.repl/refresh-all)",
     argl = "{:arglists '([${1:arglist}])}",
     rs = "(require 'sc.api)",
     spy = "(sc.api/spy $1)",

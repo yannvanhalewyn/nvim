@@ -36,7 +36,7 @@ end
 
 
 function components.position()
-  return hl_pattern:format('rainbow4',' %3l:%-2c ')
+  return hl_pattern:format("rainbow4","%3l:%-2c ")
 end
 
 local function abbreviate_path(path)

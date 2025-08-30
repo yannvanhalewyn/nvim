@@ -144,19 +144,21 @@ vim.cmd.colorscheme("catppuccin")
 require("statusline")
 
 local colors = require("catppuccin.palettes.mocha")
+vim.cmd.highlight("Comment guifg=" .. colors["surface2"])
 
 local overrides = {
-  ["@function.call"] = { fg = "yellow" },
-  ["@function.clojure"] = { fg = "yellow" },
-  ["@function.macro.clojure"] = { fg = "mauve" }, -- 'reify'
-  ["@type.clojure"] = { fg = "maroon" },
-  -- Semantic higlights
-  ["@lsp.type.namespace.clojure"] = { fg = "maroon" },
-  ["@lsp.type.type.clojure"] = { fg = "maroon" }, -- Namespace part of fn and kw
-  ["@lsp.type.keyword.clojure"] = { fg = "blue" },
-  ["@lsp.type.interface.clojure"] = { fg = "maroon" },
-  -- This is the ':' part of the keyword
-  ["@string.special.symbol.clojure"] = { fg = "blue" },
+  -- ["@function.call"] = { fg = "yellow" },
+  -- ["@function.clojure"] = { fg = "yellow" },
+  -- ["@module.clojure"] = { fg = "maroon" }, -- To be consistent while LSP is loading
+  -- ["@function.macro.clojure"] = { fg = "mauve" }, -- Used by 'reify'
+  -- ["@type.clojure"] = { fg = "maroon" },
+  -- -- Semantic higlights
+  -- ["@lsp.type.namespace.clojure"] = { fg = "maroon" },
+  -- ["@lsp.type.type.clojure"] = { fg = "maroon" }, -- Namespace part of fn and kw
+  -- ["@lsp.type.keyword.clojure"] = { fg = "blue" },
+  -- ["@lsp.type.interface.clojure"] = { fg = "maroon" },
+  -- -- This is the ':' part of the keyword
+  -- ["@string.special.symbol.clojure"] = { fg = "blue" },
 }
 
 for hl_name, config in pairs(overrides) do
@@ -171,8 +173,8 @@ end
 -- These resets can go when semantic HL have improved for Clojure. I want to
 -- keep semantic HL instead of disabling for now because they do give support
 -- for higlighting namespaces in keywords.
-vim.cmd.highlight("@lsp.type.function.clojure guifg=none")
-vim.cmd.highlight("@lsp.type.method.clojure guifg=none") -- methods declared in 'reify' blocks
+-- vim.cmd.highlight("@lsp.type.function.clojure guifg=none")
+-- vim.cmd.highlight("@lsp.type.method.clojure guifg=none") -- methods declared in 'reify' blocks
 
 -- Configure diagnostic signs with nice icons like in NvChad
 vim.diagnostic.config {
@@ -386,7 +388,7 @@ vim.keymap.set("n", "<leader>fg", ":Pick files tool='git'<CR>", { desc = "Files 
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live"})
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>", { desc = "Resume Find" })
 vim.keymap.set("n", "<leader>d", ":Oil<CR>", { desc = "Browse Directory" })
-vim.keymap.set("n", "<leader>N", ":Neotree<CR>", { desc = "Neotree" })
+vim.keymap.set("n", "<leader>N", ":Neotree reveal<CR>", { desc = "Neotree" })
 vim.keymap.set("n", "<leader>nf", ":Neotree float<cr>", { desc = "Neotree Git Status" })
 vim.keymap.set("n", "<leader>nd", ":Neotree document_symbols right<CR>", { desc = "Neotree Document Symbols" })
 vim.keymap.set("n", "<leader>nb", ":Neotree buffers left<cr>", { desc = "Neotree Document Symbols" })
