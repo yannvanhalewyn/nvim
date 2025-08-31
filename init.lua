@@ -143,6 +143,13 @@ require("blink.cmp").setup({
 local statusline_bg = "#232232"
 
 require("catppuccin").setup({
+  highlight_overrides = {
+    mocha = function(colors)
+      return {
+        Visual = { bg = colors.surface0 },
+      }
+    end
+  },
   custom_highlights = function(colors)
     return {
       Comment = { fg = colors.surface2 },
@@ -264,7 +271,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 vim.api.nvim_create_autocmd("TextYankPost", {
   pattern = "*",
   callback = function()
-    vim.highlight.on_yank({ timeout = 140 })
+    vim.highlight.on_yank({ higroup = "CurSearch", timeout = 140 })
   end,
 })
 
@@ -311,6 +318,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 vim.g["conjure#mapping#doc_word"] = false -- Disables annoying 'K' binding
 vim.g["conjure#highlight#enabled"] = true -- Highlight evaluated forms
+vim.g["conjure#highlight#group"] = "CurSearch"
 vim.g.clojure_align_multiline_strings = 1
 vim.g.clojure_align_subforms = 0
 vim.g.clojure_fuzzy_indent = 1
