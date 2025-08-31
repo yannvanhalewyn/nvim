@@ -95,7 +95,7 @@ end
 local state = { lsp_msg = "" }
 
 components.lsp_msg = function()
-  return vim.o.columns < 120 and "" or state.lsp_msg
+  return vim.o.columns < 120 and "" or hl("St_lsp_msg", state.lsp_msg)
 end
 
 components.lsp = function()
@@ -135,21 +135,6 @@ vim.api.nvim_create_autocmd("LspProgress", {
   end
 })
 
-local colors = require("catppuccin.palettes.mocha")
-local statusline_bg = "#232232"
-
-vim.cmd.highlight("statusline guibg=" .. statusline_bg)
-vim.cmd.highlight("St_file guifg=default guibg=" .. colors["surface0"])
-vim.cmd.highlight("St_file_sep guifg=" .. colors["surface0"])
-vim.cmd.highlight("St_filetype guifg=" .. colors["green"])
-vim.cmd.highlight("St_lspError guifg=" .. colors["red"])
-vim.cmd.highlight("St_lspWarning guifg=" .. colors["yellow"])
-vim.cmd.highlight("St_lspHints guifg=" .. colors["mauve"])
-vim.cmd.highlight("St_lspInfo guifg=" .. colors["green"])
-vim.cmd.highlight("St_cwd_sep_left guifg=" .. statusline_bg .. " guibg=" .. colors["surface0"])
-vim.cmd.highlight("St_cwd_icon guifg=" .. colors["text"] .. " guibg=" .. colors["surface0"])
-vim.cmd.highlight("St_cwd_text guifg=" .. colors["text"] .. " guibg=" .. colors["surface0"])
-
 local statusline = {
   '%{%v:lua._statusline_component("file_module")%}',
   "%=",
@@ -157,7 +142,7 @@ local statusline = {
   "%=",
   '%{%v:lua._statusline_component("lsp")%}',
   '%{%v:lua._statusline_component("diagnostic_status")%}',
-  '%{%v:lua._statusline_component("cwd")%}',
+  '%{%v:lua._statusline_component("cwd")%} ',
   '%{%v:lua._statusline_component("position")%}'
 }
 

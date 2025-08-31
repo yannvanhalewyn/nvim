@@ -140,31 +140,29 @@ require("blink.cmp").setup({
 --------------------------------------------------------------------------------
 -- UI / Editor
 
+local statusline_bg = "#232232"
+
+require("catppuccin").setup({
+  custom_highlights = function(colors)
+    return {
+      Comment = { fg = colors.surface2 },
+      St_file = { bg = colors.surface0 },
+      St_file_sep = { fg= colors.surface0 },
+      St_lspError = { fg= colors.red },
+      St_lspWarning = { fg= colors.yellow },
+      St_lspHints = { fg= colors.mauve },
+      St_lspInfo = { fg= colors.green },
+      St_cwd_sep_left = { fg= statusline_bg, bg = colors.surface0 },
+      St_cwd_icon = { fg = colors.text, bg = colors.surface0},
+      St_cwd_text = { fg = colors.text, bg = colors.surface0},
+      St_lsp_msg = { fg = colors.peach }
+    }
+  end
+})
+
 vim.cmd.colorscheme("catppuccin")
 require("statusline")
-
-local colors = require("catppuccin.palettes.mocha")
-vim.cmd.highlight("Comment guifg=" .. colors["surface2"])
-
-local overrides = {
-  -- ["@function.call"] = { fg = "yellow" },
-  -- ["@function.clojure"] = { fg = "yellow" },
-  -- ["@module.clojure"] = { fg = "maroon" }, -- To be consistent while LSP is loading
-  -- ["@function.macro.clojure"] = { fg = "mauve" }, -- Used by 'reify'
-  -- ["@type.clojure"] = { fg = "maroon" },
-  -- -- Semantic higlights
-  -- ["@lsp.type.namespace.clojure"] = { fg = "maroon" },
-  -- ["@lsp.type.type.clojure"] = { fg = "maroon" }, -- Namespace part of fn and kw
-  -- ["@lsp.type.keyword.clojure"] = { fg = "blue" },
-  -- ["@lsp.type.interface.clojure"] = { fg = "maroon" },
-  -- -- This is the ':' part of the keyword
-  -- ["@string.special.symbol.clojure"] = { fg = "blue" },
-}
-
-for hl_name, config in pairs(overrides) do
-  local fg_hex = colors[config["fg"]]
-  vim.cmd.highlight(hl_name .. " guifg=" .. fg_hex)
-end
+vim.cmd.highlight("statusline guibg=" .. statusline_bg)
 
 -- Disable semantic HL for functions because it highlights 'defprotocol',
 -- 'reify' and functions the same way. Disabling this fg will fallback to
