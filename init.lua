@@ -15,6 +15,7 @@ vim.o.swapfile = false
 vim.o.winborder = "rounded"
 vim.o.undofile = true
 vim.o.splitright = true
+vim.o.splitbelow = true
 vim.o.laststatus = 3 -- 2 for every window
 vim.o.ignorecase = true
 vim.g.mapleader = " "
@@ -147,6 +148,7 @@ require("catppuccin").setup({
     mocha = function(colors)
       return {
         Visual = { bg = colors.surface0 },
+        ["@lsp.type.namespace.clojure"] = { fg = colors.red},
       }
     end
   },
@@ -159,6 +161,7 @@ require("catppuccin").setup({
       St_lspWarning = { fg= colors.yellow },
       St_lspHints = { fg= colors.mauve },
       St_lspInfo = { fg= colors.green },
+      St_lspClient = { fg = colors.blue },
       St_cwd_sep_left = { fg= statusline_bg, bg = colors.surface0 },
       St_cwd_icon = { fg = colors.text, bg = colors.surface0},
       St_cwd_text = { fg = colors.text, bg = colors.surface0},
@@ -489,6 +492,7 @@ vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><
 -- VCS
 vim.keymap.set("n", "<leader>gd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
 vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git diff something else", })
+vim.keymap.set("n", "<leader>gs", ":DiffviewOpen <C-r><C-w>^!", { desc = "Git diff something else", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gt", ":DiffviewFileHistory %<CR>", { desc = "Git Timemachine" })
 vim.keymap.set("n", "<leader>gT", ":DiffviewFileHistory<CR>", { desc = "Git Timemachine" })
 

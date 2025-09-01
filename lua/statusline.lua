@@ -98,11 +98,11 @@ components.lsp_msg = function()
   return vim.o.columns < 120 and "" or hl("St_lsp_msg", state.lsp_msg)
 end
 
-components.lsp = function()
+components.lsp_client = function()
   if rawget(vim, "lsp") then
     for _, client in ipairs(vim.lsp.get_clients()) do
       if client.attached_buffers[vim.api.nvim_win_get_buf(0)] then
-        return (vim.o.columns > 100 and "   LSP ~ " .. client.name .. " ") or "   LSP "
+        return (vim.o.columns > 100 and hl("St_lspClient", "   LSP ~ " .. client.name .. " ") or "   LSP ")
       end
     end
   end
@@ -140,7 +140,7 @@ local statusline = {
   "%=",
   '%{%v:lua._statusline_component("lsp_msg")%}',
   "%=",
-  '%{%v:lua._statusline_component("lsp")%}',
+  '%{%v:lua._statusline_component("lsp_client")%}',
   '%{%v:lua._statusline_component("diagnostic_status")%}',
   '%{%v:lua._statusline_component("cwd")%} ',
   '%{%v:lua._statusline_component("position")%}'
