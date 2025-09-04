@@ -442,6 +442,8 @@ vim.keymap.set('i', '"', '""<left>')
 vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
 vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
+vim.keymap.set("n", "j", "gj")
+vim.keymap.set("n", "k", "gk")
 
 -- Editor
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
