@@ -38,7 +38,7 @@ vim.pack.add({
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
   { src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
-  -- { src = "https://github.com/folke/which-key.nvim" },
+  { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
@@ -383,7 +383,7 @@ require("gitlinker").setup({
 local kulala = require("kulala")
 kulala.setup()
 
--- vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
+vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
