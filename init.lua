@@ -56,6 +56,8 @@ vim.pack.add({
   { src = "https://github.com/Olical/conjure" },
   { src = "https://github.com/julienvincent/nvim-paredit" },
   { src = "https://github.com/julienvincent/clojure-test.nvim" },
+  -- AI
+  { src = "https://github.com/supermaven-inc/supermaven-nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" },
   -- HTTP
   { src = "https://github.com/mistweaverco/kulala.nvim"}
@@ -353,6 +355,15 @@ require("clojure-test").setup({
 })
 
 --------------------------------------------------------------------------------
+-- AI
+
+require("supermaven-nvim").setup({
+  keymaps = {
+    accept_suggestion = "<C-c>",
+  }
+})
+
+--------------------------------------------------------------------------------
 -- Mappings
 
 local f = require("functions")
@@ -455,6 +466,7 @@ vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tn", ":set number!<CR>", { desc = "Toggle Line Numbers" })
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { desc = "Toggle Relative number" })
 vim.keymap.set("n", "<leader>tf", ":set formatexpr=<cr>", { desc = "Toggle Format Expression" })
+vim.keymap.set("n", "<leader>ts", ":SupermavenToggle<CR>", { desc = "Toggle Supermaven" })
 vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { desc = "Inspect Highlight" })
 
 -- Yanking and pasting
