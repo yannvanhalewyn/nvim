@@ -399,6 +399,7 @@ vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global =
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
 vim.keymap.set("n", "<leader>fs", ":write<CR>", { desc = "File Save"})
+vim.keymap.set("n", "<leader>fS", ":wall<CR>", { desc = "File Save All"})
 vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Code Format" })
 vim.keymap.set("n", "<leader>hh", ":Pick help<CR>", { desc = "Help Help Tags"})
 vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>", { desc = "Buffer Browse"})
@@ -466,12 +467,15 @@ vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tn", ":set number!<CR>", { desc = "Toggle Line Numbers" })
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { desc = "Toggle Relative number" })
 vim.keymap.set("n", "<leader>tf", ":set formatexpr=<cr>", { desc = "Toggle Format Expression" })
+vim.keymap.set("n", "<leader>tw", ":set wrap!<cr>", { desc = "Toggle Format Expression" })
 vim.keymap.set("n", "<leader>ts", ":SupermavenToggle<CR>", { desc = "Toggle Supermaven" })
 vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { desc = "Inspect Highlight" })
 
 -- Yanking and pasting
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
+vim.keymap.set("n", "<leader>Y", '"+Y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
+vim.keymap.set("v", "<leader>P", '"+P')   -- Paste without overwriting the default register
 vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
 vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y')            -- Yank to the system clipboard in visual mode
@@ -549,6 +553,7 @@ vim.keymap.set("n", "<localleader>tf", clj_test.run_tests_in_ns, { desc = "Run t
 vim.keymap.set("n", "<localleader>tl", clj_test.rerun_previous, { desc = "Rerun the most recently run tests" })
 vim.keymap.set("n", "<localleader>tL", clj_test.load_tests, { desc = "Find and load test namespaces in classpath" })
 vim.keymap.set("n", "<localleader>!", function() clj_test.analyze_exception("*e") end, { desc = "Inspect the most recent exception" })
+vim.keymap.set("n", "<localleader>ct", "m'O<esc>80i;<esc>`'", { desc = "Clojure Comment Title" })
 
 -- HTTP
 vim.keymap.set("n", "<leader>he", kulala.run, { desc = "HTTP Execute Request" })
