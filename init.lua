@@ -30,14 +30,14 @@ vim.pack.add({
   { src = "https://github.com/catppuccin/nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
-  { src = "https://github.com/tpope/vim-repeat" },            -- Make surround repeatable
+  { src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
   { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree
   { src = "https://github.com/echasnovski/mini.pick" },
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
-  { src = "https://github.com/mawkler/refjump.nvim" },        -- Jump LSP references in buffer with [r and ]r
+  { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
   { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
@@ -60,7 +60,7 @@ vim.pack.add({
   { src = "https://github.com/supermaven-inc/supermaven-nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" },
   -- HTTP
-  { src = "https://github.com/mistweaverco/kulala.nvim"}
+  { src = "https://github.com/mistweaverco/kulala.nvim" }
 })
 
 --------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ require("catppuccin").setup({
     mocha = function(colors)
       return {
         Visual = { bg = colors.surface0 },
-        ["@lsp.type.namespace.clojure"] = { fg = colors.red},
+        ["@lsp.type.namespace.clojure"] = { fg = colors.red },
       }
     end
   },
@@ -158,15 +158,15 @@ require("catppuccin").setup({
     return {
       Comment = { fg = colors.surface2 },
       St_file = { bg = colors.surface0 },
-      St_file_sep = { fg= colors.surface0 },
-      St_lspError = { fg= colors.red },
-      St_lspWarning = { fg= colors.yellow },
-      St_lspHints = { fg= colors.mauve },
-      St_lspInfo = { fg= colors.green },
+      St_file_sep = { fg = colors.surface0 },
+      St_lspError = { fg = colors.red },
+      St_lspWarning = { fg = colors.yellow },
+      St_lspHints = { fg = colors.mauve },
+      St_lspInfo = { fg = colors.green },
       St_lspClient = { fg = colors.blue },
-      St_cwd_sep_left = { fg= statusline_bg, bg = colors.surface0 },
-      St_cwd_icon = { fg = colors.text, bg = colors.surface0},
-      St_cwd_text = { fg = colors.text, bg = colors.surface0},
+      St_cwd_sep_left = { fg = statusline_bg, bg = colors.surface0 },
+      St_cwd_icon = { fg = colors.text, bg = colors.surface0 },
+      St_cwd_text = { fg = colors.text, bg = colors.surface0 },
       St_lsp_msg = { fg = colors.peach }
     }
   end
@@ -240,7 +240,7 @@ require("hunk").setup({
 
 require("refjump").setup({
   highlights = {
-  	enable = false
+    enable = false
   },
   integrations = {
     demicolon = {
@@ -281,35 +281,54 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- Highlight LSP references after 300ms
-vim.o.updatetime = 50
+vim.o.updatetime = 200
 vim.cmd.highlight("LspReferenceText gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceRead gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceWrite gui=underline guibg=NONE")
+
+local document_highlight_enabled = true
+local highlight_autocmds = {}
+
+local function toggle_document_highlight()
+  document_highlight_enabled = not document_highlight_enabled
+  if document_highlight_enabled then
+    print("Document Highlighting enabled")
+  else
+    print("Document Highlighting disabled")
+    for _buf, autocmd_id in pairs(highlight_autocmds) do
+      print("Disabling autocmd", _buf, autocmd_id)
+      vim.api.nvim_del_autocmd(autocmd_id)
+    end
+    vim.lsp.buf.clear_references()
+    highlight_autocmds = {}
+  end
+end
+
+vim.api.nvim_create_user_command("ToggleDocumentHighlight", toggle_document_highlight, {})
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     if client and client:supports_method("textDocument/documentHighlight", event.buf) then
-      vim.api.nvim_create_autocmd("CursorHold", {
+      table.insert(highlight_autocmds, vim.api.nvim_create_autocmd("CursorHold", {
         buffer = event.buf,
-        callback = function()
-          vim.lsp.buf.document_highlight()
-        end
-      })
+        callback = vim.lsp.buf.document_highlight
+        -- callback = function()
+        --   vim.lsp.buf.document_highlight()
+        -- end
+      }))
 
-      vim.api.nvim_create_autocmd("CursorMoved", {
+      table.insert(highlight_autocmds, vim.api.nvim_create_autocmd("CursorMoved", {
         buffer = event.buf,
-        callback = function()
-          vim.lsp.buf.clear_references()
-        end
-      })
+        callback = vim.lsp.buf.clear_references
+      }))
     end
   end
 })
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
-  callback = function ()
+  callback = function()
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
     vim.opt_local.wrap = true
@@ -394,19 +413,20 @@ require("gitlinker").setup({
 local kulala = require("kulala")
 kulala.setup()
 
-vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end, { desc = "Buffer Local Keymaps (which-key)" })
+vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end,
+  { desc = "Buffer Local Keymaps (which-key)" })
 
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
-vim.keymap.set("n", "<leader>fs", ":write<CR>", { desc = "File Save"})
-vim.keymap.set("n", "<leader>fS", ":wall<CR>", { desc = "File Save All"})
+vim.keymap.set("n", "<leader>fs", ":write<CR>", { desc = "File Save" })
+vim.keymap.set("n", "<leader>fS", ":wall<CR>", { desc = "File Save All" })
 vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Code Format" })
-vim.keymap.set("n", "<leader>hh", ":Pick help<CR>", { desc = "Help Help Tags"})
-vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>", { desc = "Buffer Browse"})
+vim.keymap.set("n", "<leader>hh", ":Pick help<CR>", { desc = "Help Help Tags" })
+vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>", { desc = "Buffer Browse" })
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Buffer Delete" })
 vim.keymap.set("n", "<leader> ", ":Pick files<CR>", { desc = "Find Files" })
 vim.keymap.set("n", "<leader>fg", ":Pick files tool='git'<CR>", { desc = "Files Git" })
-vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live"})
+vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live" })
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>", { desc = "Resume Find" })
 vim.keymap.set("n", "<leader>d", ":Oil<CR>", { desc = "Browse Directory" })
 vim.keymap.set("n", "<leader>N", ":Neotree reveal<CR>", { desc = "Neotree" })
@@ -461,7 +481,7 @@ vim.keymap.set("n", "k", "gk")
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
 vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Column" })
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
-vim.keymap.set("n", "gF", f.goto_file_and_lnum, { desc = "Goto file:linenumber at cursor"})
+vim.keymap.set("n", "gF", f.goto_file_and_lnum, { desc = "Goto file:linenumber at cursor" })
 vim.keymap.set("n", "gi", f.recenter_if_scrolled(vim.lsp.buf.implementation), { desc = "Goto Implementation" })
 vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tn", ":set number!<CR>", { desc = "Toggle Line Numbers" })
@@ -475,7 +495,7 @@ vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { desc = "Inspect Highlight" })
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>Y", '"+Y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
-vim.keymap.set("v", "<leader>P", '"+P')   -- Paste without overwriting the default register
+vim.keymap.set("v", "<leader>P", '"+P')    -- Paste without overwriting the default register
 vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
 vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y')            -- Yank to the system clipboard in visual mode
@@ -538,8 +558,10 @@ vim.keymap.set("n", "<A-L>", paredit.api.slurp_forwards, { desc = "Paredit Slurp
 vim.keymap.set("n", "<A-]>", f.paredit_wrap("[", "]"), { desc = "Paredit Wrap Element ]" })
 vim.keymap.set("n", "<A-}>", f.paredit_wrap("{", "}"), { desc = "Paredit Wrap Element }" })
 vim.keymap.set("n", "<A-)>", f.paredit_wrap("(", ")"), { desc = "Paredit Wrap Element )" })
-vim.keymap.set("n", "<localleader>w", f.paredit_wrap_and_insert("( ", ")", "inner_start"), { desc = "Paredit Wrap Element Insert Head" })
-vim.keymap.set("n", "<localleader>W", f.paredit_wrap_and_insert("(", " )", "inner_end"), { desc = "Paredit Wrap Element Insert Tail" })
+vim.keymap.set("n", "<localleader>w", f.paredit_wrap_and_insert("( ", ")", "inner_start"),
+  { desc = "Paredit Wrap Element Insert Head" })
+vim.keymap.set("n", "<localleader>W", f.paredit_wrap_and_insert("(", " )", "inner_end"),
+  { desc = "Paredit Wrap Element Insert Tail" })
 
 local clj_test = require("clojure-test.api")
 -- 'ta' is overwritten by Conjure. I don't think it's possible to only
@@ -552,7 +574,8 @@ vim.keymap.set("n", "<localleader>tt", clj_test.run_tests, { desc = "Run tests" 
 vim.keymap.set("n", "<localleader>tf", clj_test.run_tests_in_ns, { desc = "Run tests in file" })
 vim.keymap.set("n", "<localleader>tl", clj_test.rerun_previous, { desc = "Rerun the most recently run tests" })
 vim.keymap.set("n", "<localleader>tL", clj_test.load_tests, { desc = "Find and load test namespaces in classpath" })
-vim.keymap.set("n", "<localleader>!", function() clj_test.analyze_exception("*e") end, { desc = "Inspect the most recent exception" })
+vim.keymap.set("n", "<localleader>!", function() clj_test.analyze_exception("*e") end,
+  { desc = "Inspect the most recent exception" })
 vim.keymap.set("n", "<localleader>ct", "m'O<esc>80i;<esc>`'", { desc = "Clojure Comment Title" })
 
 -- HTTP
@@ -562,9 +585,13 @@ vim.keymap.set("n", "<leader>hse", kulala.set_selected_env, { desc = "HTTP Set E
 -- Opencode
 vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
 vim.keymap.set("n", "<leader>aa", function() require('opencode').ask('@cursor: ') end, { desc = "AI ask about this" })
-vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@selection: ') end, { desc = "AI Ask About selection" })
+vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@selection: ') end,
+  { desc = "AI Ask About selection" })
 vim.keymap.set("n", "<leader>an", function() require('opencode').command('session_new') end, { desc = "AI New session" })
-vim.keymap.set("n", "<leader>ay", function() require('opencode').command('messages_copy') end, { desc = "AI Copy last message" })
+vim.keymap.set("n", "<leader>ay", function() require('opencode').command('messages_copy') end,
+  { desc = "AI Copy last message" })
 vim.keymap.set({ "n", "v" }, "<leader>ap", function() require('opencode').select_prompt() end, { desc = "Select prompt" })
-vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('messages_half_page_up') end, { desc = "Scroll messages up" })
-vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('messages_half_page_down') end, { desc = "Scroll messages down" })
+vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('messages_half_page_up') end,
+  { desc = "Scroll messages up" })
+vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('messages_half_page_down') end,
+  { desc = "Scroll messages down" })
