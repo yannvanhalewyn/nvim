@@ -281,26 +281,43 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- Highlight LSP references after 300ms
-vim.o.updatetime = 200
+vim.o.updatetime = 100
 vim.cmd.highlight("LspReferenceText gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceRead gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceWrite gui=underline guibg=NONE")
 
 local document_highlight_enabled = true
-local highlight_autocmds = {}
+local highlight_registry = {}
+
+local function enable_document_highlight(buf)
+  return {
+    vim.api.nvim_create_autocmd("CursorHold", {
+      buffer = buf,
+      callback = vim.lsp.buf.document_highlight
+    }),
+    vim.api.nvim_create_autocmd("CursorMoved", {
+      buffer = buf,
+      callback = vim.lsp.buf.clear_references
+    })
+  }
+end
 
 local function toggle_document_highlight()
   document_highlight_enabled = not document_highlight_enabled
   if document_highlight_enabled then
     print("Document Highlighting enabled")
-  else
-    print("Document Highlighting disabled")
-    for _buf, autocmd_id in pairs(highlight_autocmds) do
-      print("Disabling autocmd", _buf, autocmd_id)
-      vim.api.nvim_del_autocmd(autocmd_id)
+    for buf, _ in pairs(highlight_registry) do
+      highlight_registry[buf] = enable_document_highlight(buf)
     end
+  else
+    for buf, autocmds in pairs(highlight_registry) do
+      -- TODO check if buf exists
+      for _, id in ipairs(autocmds) do
+        vim.api.nvim_del_autocmd(id)
+      end
+    end
+    print("Document Highlighting disabled")
     vim.lsp.buf.clear_references()
-    highlight_autocmds = {}
   end
 end
 
@@ -310,18 +327,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     if client and client:supports_method("textDocument/documentHighlight", event.buf) then
-      table.insert(highlight_autocmds, vim.api.nvim_create_autocmd("CursorHold", {
-        buffer = event.buf,
-        callback = vim.lsp.buf.document_highlight
-        -- callback = function()
-        --   vim.lsp.buf.document_highlight()
-        -- end
-      }))
-
-      table.insert(highlight_autocmds, vim.api.nvim_create_autocmd("CursorMoved", {
-        buffer = event.buf,
-        callback = vim.lsp.buf.clear_references
-      }))
+      highlight_registry[event.buf] = enable_document_highlight(event.buf)
     end
   end
 })
@@ -483,6 +489,7 @@ vim.keymap.set("n", "<A-c>", f.toggle_color_column, { desc = "Toggle Color Colum
 vim.keymap.set("n", "<A-C>", ":set cursorcolumn!<CR>", { desc = "Toggle Cursor Highlight" })
 vim.keymap.set("n", "gF", f.goto_file_and_lnum, { desc = "Goto file:linenumber at cursor" })
 vim.keymap.set("n", "gi", f.recenter_if_scrolled(vim.lsp.buf.implementation), { desc = "Goto Implementation" })
+vim.keymap.set("n", "<leader>th", ":ToggleDocumentHighlight<cr>", { desc = "Toggle LSP Highlight References"})
 vim.keymap.set("n", "<leader>tz", zen_mode.toggle, { desc = "Toggle Zen Mode" })
 vim.keymap.set("n", "<leader>tn", ":set number!<CR>", { desc = "Toggle Line Numbers" })
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { desc = "Toggle Relative number" })

@@ -1,11 +1,14 @@
 local highlight_autocmds = {}
 
-table.insert(highlight_autocmds, 1)
-table.insert(highlight_autocmds, 2)
-table.insert(highlight_autocmds, 3)
+highlight_autocmds[12] = 1
+highlight_autocmds[3] = 2
+highlight_autocmds[296] = 3
+-- table.insert(highlight_autocmds, 12, 1)
+-- table.insert(highlight_autocmds, 3, 2)
+-- table.insert(highlight_autocmds, 296, 3)
 
--- print(vim.inspect(highlight_autocmds))
+print(vim.inspect(highlight_autocmds))
 
-for _, id in ipairs(highlight_autocmds) do
-  print(id)
+for buf, id in pairs(highlight_autocmds) do
+  print(buf, id)
 end
