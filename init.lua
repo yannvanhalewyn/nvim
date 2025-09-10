@@ -56,6 +56,8 @@ vim.pack.add({
   { src = "https://github.com/Olical/conjure" },
   { src = "https://github.com/julienvincent/nvim-paredit" },
   { src = "https://github.com/julienvincent/clojure-test.nvim" },
+  -- Markdown
+  { src = "https://github.com/ixru/nvim-markdown"},
   -- AI
   { src = "https://github.com/supermaven-inc/supermaven-nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" },
