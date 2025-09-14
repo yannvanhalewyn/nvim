@@ -523,7 +523,6 @@ vim.keymap.set("n", "<leader>gy", gitsigns.undo_stage_hunk, { desc = "Git Undo S
 vim.keymap.set("n", "<leader>gp", gitsigns.preview_hunk_inline, { desc = "Git Preview Hunk Inline" })
 vim.keymap.set("n", "<leader>gP", gitsigns.preview_hunk, { desc = "Git Preview Hunk" })
 vim.keymap.set("n", "<leader>gb", gitsigns.blame_line, { desc = "Git blame line", })
-vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision", })
 
 -- Git link
 vim.keymap.set("n", "<leader>gll", ":GitLink current_branch<cr>", { desc = "Git Link Current Banch" })
@@ -540,11 +539,15 @@ vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c
 vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
 
 -- VCS
-vim.keymap.set("n", "<leader>gd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
-vim.keymap.set("n", "<leader>gD", ":DiffviewOpen master...HEAD", { desc = "Git diff something else", })
-vim.keymap.set("n", "<leader>gs", ":DiffviewOpen <C-r><C-w>^!", { desc = "Git diff something else", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
+vim.keymap.set("n", "<leader>gdm", ":DiffviewOpen master...HEAD", { desc = "Git Diff master ", })
+-- Useful for latest change in
+vim.keymap.set("n", "<leader>gdh", ":DiffviewOpen HEAD~1<CR>", { desc = "Git Diff HEAD~1", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdr", ":DiffviewOpen <C-r><C-w>^!", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdo", ":DiffviewOpen ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gt", ":DiffviewFileHistory %<CR>", { desc = "Git Timemachine" })
 vim.keymap.set("n", "<leader>gT", ":DiffviewFileHistory<CR>", { desc = "Git Timemachine" })
+vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision", })
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
