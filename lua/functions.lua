@@ -1,5 +1,15 @@
 local M = {}
 
+local function remove(list, pred)
+  local filtered = {}
+  for _, v in ipairs(list) do
+    if not pred(v) then
+      table.insert(filtered, v)
+    end
+  end
+  return filtered
+end
+
 M.grep_current_word = function()
   local word = vim.fn.expand("<cword>")
   require("mini.pick").builtin.grep({ pattern = word })
@@ -60,11 +70,12 @@ M.recenter_if_scrolled = function(cmd)
   end
 end
 
-M.copy_file_reference = function()
+-- TODO make this work with visual mode, getting a range
+M.copy_file_reference = function(registry)
   local filepath = vim.fn.expand('%')
   local line_num = vim.fn.line('.')
   local reference = filepath .. ':' .. line_num
-  vim.fn.setreg('"', reference)
+  vim.fn.setreg(registry or '"', reference)
   print('Copied: ' .. reference)
 end
 
@@ -127,16 +138,14 @@ M.open_current_file_in_revision = function()
       if revision then
         vim.cmd.new("[" .. revision .. "] " .. current_filename)
         vim.cmd("read !git show " .. revision .. ":" .. current_filename)
-        vim.cmd("setlocal readonly nomodifiable buftype=nofile bufhidden=wipe")
+        vim.cmd("setlocal readonly nomodifiable buftype=nofile") -- bufhidden=wipe
         vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
       end
     end
   )
 end
 
-vim.keymap.set("n", "<leader>gf", M.open_current_file_in_revision)
-
-M.paredit_wrap = function(l, r, placement)
+M.paredit_wrap = function(l, r)
   return function()
     local paredit = require("nvim-paredit")
     paredit.wrap.wrap_element_under_cursor(l, r)
@@ -151,6 +160,59 @@ M.paredit_wrap_and_insert = function(l, r, placement)
       { placement = placement, mode = "insert" }
     )
   end
+end
+
+M.select_branch = function (cb)
+  local result = vim.fn.systemlist("git branch")
+  local branches = remove(
+    vim.tbl_map(vim.trim, result),
+    function(v)
+      return v == "* (no branch)"
+    end
+  )
+
+  if vim.v.shell_error ~= 0 or #branches == 0 then
+    vim.notify("No brances found or not in a git repository", vim.log.levels.WARN)
+    return
+  end
+
+  vim.ui.select(branches, { prompt = "Select branch", }, cb)
+end
+
+M.select_branch_for_diffview = function()
+  local trunk_branch = vim.trim(vim.fn.system(
+    "git remote show origin | grep 'HEAD branch' | cut -d' ' -f5"
+  ))
+  M.select_branch(function(choice)
+    if choice then
+      print("DiffviewOpen " .. trunk_branch .. "..." .. choice)
+      vim.cmd("DiffviewOpen " .. trunk_branch .. "..." .. choice)
+    end
+  end)
+end
+
+M.select_git_commit_for_diffview = function()
+  local cmd = "git log --oneline --no-merges -n 100"
+  local commits = vim.fn.systemlist(cmd)
+
+  if vim.v.shell_error ~= 0 or #commits == 0 then
+    vim.notify("No git commits found or not in a git repository", vim.log.levels.WARN)
+    return
+  end
+
+  vim.ui.select(commits, {
+    prompt = "Select commit for DiffviewOpen:",
+    format_item = function(item)
+      return item
+    end,
+  }, function(choice)
+    if choice then
+      local hash = choice:match("^(%w+)")
+      if hash then
+        vim.cmd("DiffviewOpen " .. hash .. "^!")
+      end
+    end
+  end)
 end
 
 return M

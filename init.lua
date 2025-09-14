@@ -83,7 +83,14 @@ minipick.setup({
   },
 })
 
-require("oil").setup()
+require("oil").setup({
+  keymaps = {
+    ["<C-h>"] = false,
+    ["<C-l>"] = false,
+    ["<A-v>"] = "actions.select_vsplit",
+    ["<A-s>"] = "actions.select_split",
+  },
+})
 
 local harpoon = require("harpoon")
 harpoon.setup()
@@ -153,6 +160,9 @@ require("catppuccin").setup({
       return {
         Visual = { bg = colors.surface0 },
         ["@lsp.type.namespace.clojure"] = { fg = colors.red },
+        -- Used while LSP is starting up, prevents a drastic color swap
+        ["@string.special.symbol.clojure"] = { fg = colors.mauve },
+        ["@module.clojure"] = { fg = colors.red },
       }
     end
   },
@@ -255,6 +265,8 @@ require("refjump").setup({
 --------------------------------------------------------------------------------
 -- AuCommands
 
+local f = require("functions")
+
 -- Cleanup whitespace on save
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*",
@@ -346,7 +358,17 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_user_command("HtmlToHiccup", "'<,'>!xargs -0 hiccup-cli --html", {range=true})
+vim.api.nvim_create_user_command("CljfmtBuffer", "%!cljfmt fix --quiet -", {})
 vim.api.nvim_create_user_command("JetPrettyEdn", "'<,'>!jet --from edn --to edn --pretty", {range=true})
+vim.api.nvim_create_user_command("DiffBranch",
+  function() f.select_branch_for_diffview() end,
+  { desc = "Select git branch for DiffviewOpen" }
+)
+
+vim.api.nvim_create_user_command("DiffCommit",
+  function() f.select_git_commit_for_diffview() end,
+  { desc = "Select git commit for DiffviewOpen" }
+)
 
 --------------------------------------------------------------------------------
 -- Clojure
@@ -384,6 +406,10 @@ require("clojure-test").setup({
   },
 })
 
+-- Markdown
+-- vim.g.vim_markdown_no_default_key_mappings = true
+vim.keymap.set("n", "<leader>m", ":<Plug>MarkdownFold<CR>", { desc = "Markdown Fold" })
+
 --------------------------------------------------------------------------------
 -- AI
 
@@ -396,7 +422,6 @@ require("supermaven-nvim").setup({
 --------------------------------------------------------------------------------
 -- Mappings
 
-local f = require("functions")
 local snippets = require("snippets")
 local zen_mode = require("zen_mode")
 
@@ -431,7 +456,8 @@ vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global =
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
 vim.keymap.set("n", "<leader>fs", ":write<CR>", { desc = "File Save" })
 vim.keymap.set("n", "<leader>fS", ":wall<CR>", { desc = "File Save All" })
-vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Code Format" })
+-- vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Code Format" })
+vim.keymap.set("n", "<leader>cf", ":w<CR>:silent exec \"!cljfmt fix <C-r>=expand('%:p')<CR>\"<CR>", { desc = "Clojure Format" })
 vim.keymap.set("n", "<leader>hh", ":Pick help<CR>", { desc = "Help Help Tags" })
 vim.keymap.set("n", "<leader>bb", ":Pick buffers<CR>", { desc = "Buffer Browse" })
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Buffer Delete" })
@@ -546,8 +572,10 @@ vim.keymap.set("n", "<leader>gdh", ":DiffviewOpen HEAD~1<CR>", { desc = "Git Dif
 vim.keymap.set("n", "<leader>gdr", ":DiffviewOpen <C-r><C-w>^!", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gdo", ":DiffviewOpen ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gt", ":DiffviewFileHistory %<CR>", { desc = "Git Timemachine" })
-vim.keymap.set("n", "<leader>gT", ":DiffviewFileHistory<CR>", { desc = "Git Timemachine" })
-vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision", })
+vim.keymap.set("n", "<leader>gl", ":DiffviewFileHistory<CR>", { desc = "Git Log" })
+vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision" })
+vim.keymap.set("n", "<leader>gdb", f.select_branch_for_diffview, { desc = "Git Diff Select Branch" })
+vim.keymap.set("n", "<leader>gdc", f.select_git_commit_for_diffview, { desc = "Git Diff Select Commit" })
 
 -- Code / Diagnostics
 vim.keymap.set("n", "[e", function()
@@ -559,6 +587,7 @@ end)
 vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Code Diagnostics" })
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Actions" })
 vim.keymap.set("n", "<leader>cr", f.copy_file_reference, { desc = "Code Copy File Reference" })
+vim.keymap.set("n", "<leader>cR", function() f.copy_file_reference("+") end, { desc = "Code Copy File Reference to clipboard" })
 
 -- Quickfix
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })

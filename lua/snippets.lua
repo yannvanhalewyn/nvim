@@ -21,7 +21,7 @@ end]]
     log = "(clojure.tools.logging/debug $1)",
     diff = "(clojure.data/diff $1)",
     pnm = "(set! *print-namespace-maps* false)",
-    hpp = "(require 'hashp.preload)",
+    hp = "(require 'hashp.preload)",
     pp = "(clojure.pprint/pprint $1)",
     unalias = "(ns-unalias *ns* '$1)",
     unmap = "(ns-unmap *ns* '$1)",
@@ -35,6 +35,12 @@ end]]
     xtq = [=[(db/q (user/$1-db)
   '{:find (pull ?e [*])
     :where [[?e ${2:query}]]})]=],
+    decode = [=[(m/decode ExpectedData
+  $1
+  (malli.transform/transformer
+    (malli.transform/strip-extra-keys-transformer)
+    (malli.transform/string-transformer)
+    (com.arqiver.tools.malli/strip-optional-nil-keys-transformer)))]=]
   }
 };
 
