@@ -215,4 +215,51 @@ M.select_git_commit_for_diffview = function()
   end)
 end
 
+M.align_to_pattern = function(pattern)
+  local start_line = vim.fn.line("'<")
+  local end_line = vim.fn.line("'>")
+  print("Running align from", start_line, end_line)
+
+  local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+
+  local positions = {}
+  for _, line in ipairs(lines) do
+    local pos = line:find(pattern, 1, true)
+    if pos then
+      table.insert(positions, pos)
+    end
+  end
+
+  if #positions == 0 then
+    vim.notify("Pattern not found in selected lines", vim.log.levels.WARN)
+    return
+  end
+
+  local max_pos = math.max(unpack(positions))
+
+  local aligned_lines = {}
+  for _, line in ipairs(lines) do
+    print("searching", pattern, line)
+    local pos = line:find(pattern, 1, true)
+    if pos then
+      print("Found match")
+      local spaces_to_add = max_pos - pos
+      local new_line = line:sub(1, pos - 1) .. string.rep(" ", spaces_to_add) .. line:sub(pos)
+      table.insert(aligned_lines, new_line)
+    else
+      table.insert(aligned_lines, line)
+    end
+  end
+
+  vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, aligned_lines)
+end
+
+M.align = function()
+  vim.ui.input({ prompt = "Align to pattern: " }, function(pattern)
+    if pattern and pattern ~= "" then
+      M.align_to_pattern(pattern)
+    end
+  end)
+end
+
 return M

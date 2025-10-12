@@ -30,14 +30,14 @@ vim.pack.add({
   { src = "https://github.com/catppuccin/nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
-  { src = "https://github.com/tpope/vim-repeat" }, -- Make surround repeatable
+  { src = "https://github.com/tpope/vim-repeat" },             -- Make surround repeatable
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-  { src = "https://github.com/nvim-tree/nvim-web-devicons" }, -- Used by Oil.nvim, NeoTree
+  { src = "https://github.com/nvim-tree/nvim-web-devicons" },  -- Used by Oil.nvim, NeoTree
   { src = "https://github.com/echasnovski/mini.pick" },
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
-  { src = "https://github.com/mawkler/refjump.nvim" }, -- Jump LSP references in buffer with [r and ]r
+  { src = "https://github.com/mawkler/refjump.nvim" },         -- Jump LSP references in buffer with [r and ]r
   { src = "https://github.com/folke/which-key.nvim" },
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
@@ -48,8 +48,7 @@ vim.pack.add({
   { src = "https://github.com/julienvincent/hunk.nvim" },      -- Execute --interactive operations with Jujutusu
   -- Util
   { src = "https://github.com/nvim-lua/plenary.nvim" },        -- Required by Harpoon
-  { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by NeoTree
-  { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by clojure-test
+  { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by Neotree, clojure-test
   { src = "https://github.com/nvim-neotest/nvim-nio" },        -- Required by clojure-test
   { src = "https://github.com/christoomey/vim-tmux-navigator" },
   -- Clojure
@@ -57,12 +56,12 @@ vim.pack.add({
   { src = "https://github.com/julienvincent/nvim-paredit" },
   { src = "https://github.com/julienvincent/clojure-test.nvim" },
   -- Markdown
-  { src = "https://github.com/ixru/nvim-markdown"},
+  { src = "https://github.com/ixru/nvim-markdown"},             -- Not necessary, but it adds C-c to toggle checkboxes and makes links more readable
+  -- HTTP
+  { src = "https://github.com/mistweaverco/kulala.nvim" },
   -- AI
   { src = "https://github.com/supermaven-inc/supermaven-nvim" },
-  { src = "https://github.com/NickvanDyke/opencode.nvim" },
-  -- HTTP
-  { src = "https://github.com/mistweaverco/kulala.nvim" }
+  { src = "https://github.com/NickvanDyke/opencode.nvim" }
 })
 
 --------------------------------------------------------------------------------
@@ -295,7 +294,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- Highlight LSP references after 300ms
-vim.o.updatetime = 100
+vim.o.updatetime = 200
 vim.cmd.highlight("LspReferenceText gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceRead gui=underline guibg=NONE")
 vim.cmd.highlight("LspReferenceWrite gui=underline guibg=NONE")
@@ -513,6 +512,8 @@ vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
 vim.keymap.set("n", "j", "gj")
 vim.keymap.set("n", "k", "gk")
+vim.keymap.set("v", "ga", f.align, { desc = "Align" })
+vim.keymap.set("v", "<return>", f.align, { desc = "Align" })
 
 -- Editor
 vim.keymap.set("n", "<esc>", ":noh<CR>", { silent = true })
