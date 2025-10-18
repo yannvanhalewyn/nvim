@@ -28,6 +28,7 @@ vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
   { src = "https://github.com/catppuccin/nvim" },
+  { src = "https://github.com/p00f/alabaster.nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
   { src = "https://github.com/tpope/vim-repeat" },             -- Make surround repeatable
@@ -183,7 +184,8 @@ require("catppuccin").setup({
   end
 })
 
-vim.cmd.colorscheme("catppuccin")
+-- vim.cmd.colorscheme("catppuccin")
+vim.cmd.colorscheme("alabaster")
 require("statusline")
 vim.cmd.highlight("statusline guibg=" .. statusline_bg)
 
