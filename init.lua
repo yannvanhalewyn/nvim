@@ -28,14 +28,14 @@ vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
   { src = "https://github.com/catppuccin/nvim" },
-  { src = "https://github.com/p00f/alabaster.nvim" },
+  -- { src = "https://github.com/p00f/alabaster.nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
   { src = "https://github.com/tpope/vim-repeat" },             -- Make surround repeatable
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
   { src = "https://github.com/nvim-tree/nvim-web-devicons" },  -- Used by Oil.nvim, NeoTree
-  { src = "https://github.com/echasnovski/mini.pick" },
+  { src = "https://github.com/nvim-mini/mini.pick" },
   { src = "https://github.com/saghen/blink.cmp",               version = vim.version.range("^1") },
   { src = "https://github.com/ThePrimeagen/harpoon",           version = "harpoon2" },
   { src = "https://github.com/mawkler/refjump.nvim" },         -- Jump LSP references in buffer with [r and ]r
@@ -160,9 +160,37 @@ require("catppuccin").setup({
       return {
         Visual = { bg = colors.surface0 },
         ["@lsp.type.namespace.clojure"] = { fg = colors.red },
+
         -- Used while LSP is starting up, prevents a drastic color swap
         ["@string.special.symbol.clojure"] = { fg = colors.mauve },
         ["@module.clojure"] = { fg = colors.red },
+
+        -- Minimize color usage
+        ["@lsp.type.macro.clojure"] = { fg = colors.white },
+        ["@lsp.type.method.clojure"] = { fg = colors.white },
+        ["@type.clojure"] = { fg = colors.white },
+        -- Namespace before var
+        ["@lsp.type.type.clojure"] = { fg = colors.white },
+        -- '/' of ns/var
+        ["@lsp.type.event.clojure"] = { fg = colors.white },
+
+        -- ["@lsp.type.type.clojure"] = { fg = colors.white },
+        -- ["@lsp.type.function.clojure"] = { fg = colors.white },
+        ["@lsp.type.class.clojure"] = { fg = colors.white },
+        -- this doesn't work, why?
+        ["@lsp.type.variable.clojure"] = { fg = colors.yellow },
+
+        ["@function.macro.clojure"] = { fg = colors.white },
+        ["@function.call.clojure"] = { fg = colors.white },
+        ["@function.builtin.clojure"] = { fg = colors.white },
+        -- ["@function.method.clojure"] = { fg = colors.white },
+        ["@keyword.clojure"] = { fg = colors.white },
+        ["@keyword.function.clojure"] = { fg = colors.white },
+        ["@keyword.repeat.clojure"] = { fg = colors.white },
+        ["@keyword.exception.clojure"] = { fg = colors.white },
+        ["@keyword.conditional.clojure"] = { fg = colors.white },
+        ["@keyword.coroutine.clojure"] = { fg = colors.white },
+        ["@comment.clojure"] = { fg = colors.peach },
       }
     end
   },
@@ -184,8 +212,8 @@ require("catppuccin").setup({
   end
 })
 
--- vim.cmd.colorscheme("catppuccin")
-vim.cmd.colorscheme("alabaster")
+vim.cmd.colorscheme("catppuccin")
+-- vim.cmd.colorscheme("alabaster")
 require("statusline")
 vim.cmd.highlight("statusline guibg=" .. statusline_bg)
 

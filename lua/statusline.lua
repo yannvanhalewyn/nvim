@@ -95,7 +95,7 @@ end
 local state = { lsp_msg = "" }
 
 components.lsp_msg = function()
-  return vim.o.columns < 120 and "" or hl("St_lsp_msg", state.lsp_msg)
+  return vim.o.columns < 80 and "" or hl("St_lsp_msg", state.lsp_msg)
 end
 
 components.lsp_client = function()
