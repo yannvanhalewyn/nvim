@@ -19,6 +19,7 @@ end]]
     ds = "(sc.api/defsc $1)",
     ls = "(sc.api/letsc $1)",
     log = "(clojure.tools.logging/debug $1)",
+    cl = "(js/console.log $1)",
     diff = "(clojure.data/diff $1)",
     pnm = "(set! *print-namespace-maps* false)",
     hp = "(require 'hashp.preload)",

@@ -436,8 +436,9 @@ require("clojure-test").setup({
 })
 
 -- Markdown
--- vim.g.vim_markdown_no_default_key_mappings = true
-vim.keymap.set("n", "<leader>m", ":<Plug>MarkdownFold<CR>", { desc = "Markdown Fold" })
+vim.g.vim_markdown_no_default_key_mappings = true
+local markdown = require("markdown")
+vim.keymap.set("n", "<C-c>", markdown.toggle_checkbox, { desc = "Markdown Toggle Checkbox" })
 
 --------------------------------------------------------------------------------
 -- AI
@@ -532,7 +533,7 @@ vim.keymap.set("n", "<C-l>", ":TmuxNavigateRight<cr>")
 vim.keymap.set("i", "<C-f>", "<right>")
 vim.keymap.set("i", "<C-b>", "<left>")
 vim.keymap.set('i', "<C-e>", snippets.expand_snippet, { desc = 'Snippet Expand' })
-vim.keymap.set("i", "<C-k>", vim.lsp.buf.signature_help, { desc = "LSP: Signature Help" })
+-- vim.keymap.set("i", "<C-k>", vim.lsp.buf.signature_help, { desc = "LSP: Signature Help" })
 vim.keymap.set('i', "(", "()<left>")
 vim.keymap.set('i', "[", "[]<left>")
 vim.keymap.set('i', "{", "{}<left>")
@@ -564,7 +565,7 @@ vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { desc = "Inspect Highlight" })
 vim.keymap.set("n", "<leader>y", '"+y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>Y", '"+Y')    -- Yank to system clipboard
 vim.keymap.set("n", "<leader>p", '"+p')    -- Paste from system clipboard
-vim.keymap.set("v", "<leader>P", '"+P')    -- Paste without overwriting the default register
+vim.keymap.set("n", "<leader>P", '"+P')    -- Paste without overwriting the default register
 vim.keymap.set("v", "<leader>p", '"_d"+P') -- Overwrite from clipboard without overwriting clipboard registry
 vim.keymap.set("v", "<leader>P", '"_dP')   -- Paste without overwriting the default register
 vim.keymap.set("x", "y", '"+y')            -- Yank to the system clipboard in visual mode
