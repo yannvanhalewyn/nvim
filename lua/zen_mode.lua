@@ -42,7 +42,6 @@ M.enter = function()
     foldcolumn = vim.wo.foldcolumn,
     wrap = vim.wo.wrap,
     linebreak = vim.wo.linebreak,
-    spell = vim.wo.spell,
     laststatus = vim.o.laststatus,
     showtabline = vim.o.showtabline,
     cmdheight = vim.o.cmdheight,
@@ -104,7 +103,6 @@ M.enter = function()
   vim.wo.foldcolumn = '0'
   vim.wo.wrap = true
   vim.wo.linebreak = true
-  vim.wo.spell = true
   vim.b.completion = false
 
   -- Hide UI elements
