@@ -48,7 +48,6 @@ vim.pack.add({
   -- These packages are meant for usage with Jujutusu
   { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
   { src = "https://github.com/julienvincent/hunk.nvim" },      -- Execute --interactive operations with Jujutusu
-  { src = "https://github.com/juniorsundar/cling.nvim" },
   -- Util
   { src = "https://github.com/nvim-lua/plenary.nvim" },        -- Required by Harpoon
   { src = "https://github.com/MunifTanjim/nui.nvim" },         -- Required by Neotree, clojure-test
@@ -452,90 +451,21 @@ end, {
 })
 
 
-local function strip_ansi(str)
-  return str:gsub("\27%[[0-9;]*m", "")
-end
+-- Setup jj commands
+local jj = require("jj")
 
-local function get_file_from_line(line)
-  local clean = strip_ansi(line)
-  local file = clean:match "^Modified regular file (.*):$"
-  if file then
-    return file, "Modified"
-  end
-  file = clean:match "^Added regular file (.*):$"
-  if file then
-    return file, "Added"
-  end
-  file = clean:match "^Removed regular file (.*):$"
-  if file then
-    return file, "Removed"
-  end
-  file = clean:match "^Renamed .* to (.*):$"
-  if file then
-    return file, "Renamed"
-  end
-  local _, b = clean:match "^diff %-%-git a/(.*) b/(.*)"
-  if b then
-    return b, "Git Diff"
-  end
-  return nil
-end
-
-local function open_difft_from_jj_log()
-  -- Get the current line
-  local line = vim.api.nvim_get_current_line()
-  local clean_line = strip_ansi(line)
-
-  -- Try to extract change ID from various jj log formats
-  -- Common formats:
-  -- 1. "@ kmqopvlv user@example.com 2024-01-03 12:34:56 abc123de"
-  -- 2. "kmqopvlv user@example.com 2024-01-03 12:34:56 abc123de"
-  -- 3. "abc123de (commit message)"
-  -- 4. Lines starting with change IDs (alphanumeric strings)
-
-  -- Pattern 1: Line with @ marker followed by change ID
-  local change_id = clean_line:match "^@%s+(%w+)"
-  
-  -- Pattern 2: Line starting with change ID
-  if not change_id then
-    change_id = clean_line:match "^(%w+)%s+%S+@"
-  end
-
-  -- Pattern 3: Change ID after whitespace (for indented lines)
-  if not change_id then
-    change_id = clean_line:match "^%s+(%w+)%s+%S+@"
-  end
-
-  -- Pattern 4: Just a change ID at the start (after optional whitespace and @ marker)
-  if not change_id then
-    change_id = clean_line:match "^%s*@?%s*(%w+)"
-    -- Validate it looks like a change ID (at least 4 chars, alphanumeric)
-    if change_id and (#change_id < 4 or not change_id:match "^%w+$") then
-      change_id = nil
-    end
-  end
-
-  if change_id and #change_id > 0 then
-    vim.cmd("DifftTab " .. change_id)
+vim.api.nvim_create_user_command("JJ", function(opts)
+  if opts.args == "" or opts.args == "log" then
+    jj.log()
   else
-    vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+    jj.run(opts.args)
   end
-end
+end, {
+  nargs = "*",
+  desc = "Run jj commands"
+})
 
-require("cling").setup {
-  wrappers = {
-    {
-      binary = "jj --no-pager",
-      command = "JJ",
-      completion_cmd = "jj util completion bash",
-      keymaps = function(buf)
-        vim.keymap.set("n", "<CR>", function()
-          open_difft_from_jj_log()
-        end, { buffer = buf, silent = true, desc = "JJ: Open Difft for change" })
-      end,
-    },
-  },
-}
+vim.keymap.set("n", "<leader>j", function() jj.log() end, { desc = "JJ Log" })
 
 --------------------------------------------------------------------------------
 -- Clojure
