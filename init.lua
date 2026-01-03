@@ -481,46 +481,44 @@ local function get_file_from_line(line)
   return nil
 end
 
-local function populate_quickfix(buf)
-  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local qf_list = {}
-  local current_file = nil
-  local current_type = nil
-  local last_was_gap = true
+local function open_difft_from_jj_log()
+  -- Get the current line
+  local line = vim.api.nvim_get_current_line()
+  local clean_line = strip_ansi(line)
 
-  for _, raw_line in ipairs(lines) do
-    local line = strip_ansi(raw_line)
-    local file, type = get_file_from_line(line)
+  -- Try to extract change ID from various jj log formats
+  -- Common formats:
+  -- 1. "@ kmqopvlv user@example.com 2024-01-03 12:34:56 abc123de"
+  -- 2. "kmqopvlv user@example.com 2024-01-03 12:34:56 abc123de"
+  -- 3. "abc123de (commit message)"
+  -- 4. Lines starting with change IDs (alphanumeric strings)
 
-    if file then
-      current_file = vim.trim(file)
-      current_type = type
-      last_was_gap = true
-    elseif line:match "^%s*%.%.%.%s*$" then
-      last_was_gap = true
-    elseif current_file then
-      local old, new = line:match "^%s*([0-9]*)%s+([0-9]*):"
-      if old or new then
-        if last_was_gap then
-          local lnum = tonumber(new) or tonumber(old) or 1
-          local text = line:sub((line:find ":" or 0) + 1)
-          table.insert(qf_list, {
-            filename = current_file,
-            lnum = lnum,
-            text = string.format("[%s] %s", current_type or "Change", vim.trim(text)),
-          })
-          last_was_gap = false
-        end
-      end
+  -- Pattern 1: Line with @ marker followed by change ID
+  local change_id = clean_line:match "^@%s+(%w+)"
+  
+  -- Pattern 2: Line starting with change ID
+  if not change_id then
+    change_id = clean_line:match "^(%w+)%s+%S+@"
+  end
+
+  -- Pattern 3: Change ID after whitespace (for indented lines)
+  if not change_id then
+    change_id = clean_line:match "^%s+(%w+)%s+%S+@"
+  end
+
+  -- Pattern 4: Just a change ID at the start (after optional whitespace and @ marker)
+  if not change_id then
+    change_id = clean_line:match "^%s*@?%s*(%w+)"
+    -- Validate it looks like a change ID (at least 4 chars, alphanumeric)
+    if change_id and (#change_id < 4 or not change_id:match "^%w+$") then
+      change_id = nil
     end
   end
 
-  if #qf_list > 0 then
-    vim.fn.setqflist(qf_list, "r")
-    vim.notify("Quickfix populated with " .. #qf_list .. " entries", vim.log.levels.INFO)
-    vim.cmd "copen"
+  if change_id and #change_id > 0 then
+    vim.cmd("DifftTab " .. change_id)
   else
-    vim.notify("No file headers or hunks found", vim.log.levels.WARN)
+    vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
   end
 end
 
@@ -532,8 +530,8 @@ require("cling").setup {
       completion_cmd = "jj util completion bash",
       keymaps = function(buf)
         vim.keymap.set("n", "<CR>", function()
-          populate_quickfix(buf)
-        end, { buffer = buf, silent = true, desc = "JJ: Show Diff" })
+          open_difft_from_jj_log()
+        end, { buffer = buf, silent = true, desc = "JJ: Open Difft for change" })
       end,
     },
   },
