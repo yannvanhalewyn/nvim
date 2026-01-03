@@ -127,6 +127,16 @@ require("neo-tree").setup({
 
 vim.lsp.enable({ "lua_ls", "clojure_lsp" })
 
+-- Disable LSP semantic tokens (use treesitter for syntax highlighting instead)
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client then
+      client.server_capabilities.semanticTokensProvider = nil
+    end
+  end,
+})
+
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 require("blink.cmp").setup({
@@ -245,12 +255,35 @@ vim.diagnostic.config {
   float = { border = "single" },
 }
 
-require('nvim-treesitter.configs').setup({
-  ensure_installed = { "lua", "luadoc", "clojure", "printf", "vim", "vimdoc" },
-  highlight = {
-    enable = true,
+-- Auto-install missing parsers
+vim.api.nvim_create_autocmd('VimEnter', {
+  once = true,
+  callback = function()
+    local required = {
+      'lua', 'luadoc', 'clojure', 'printf', 'vim', 'vimdoc', 'kulala_http',
+      'javascript', 'json', 'yaml', 'markdown', 'html', 'css', 'bash', 'zsh', 'fish'
+    }
+    local parser_dir = vim.fn.stdpath('data') .. '/site/parser'
+    local missing = vim.tbl_filter(function(lang)
+      local parser_path = parser_dir .. '/' .. lang .. '.so'
+      return vim.fn.filereadable(parser_path) == 0
+    end, required)
+    if #missing > 0 then
+      vim.notify("Installing missing treesitter parsers: " .. table.concat(missing, ", "), vim.log.levels.INFO)
+      require('nvim-treesitter').install(missing)
+    end
+  end
+})
+
+-- Enable treesitter for supported filetypes
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = {
+    'lua', 'clojure', 'vim', 'markdown', 'http',
+    'javascript', 'json', 'yaml', 'html', 'css', 'bash', 'zsh', 'fish'
   },
-  indent = { enable = true },
+  callback = function()
+    vim.treesitter.start()
+  end,
 })
 
 local gitsigns = require("gitsigns")
