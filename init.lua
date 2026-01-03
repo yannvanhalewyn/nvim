@@ -43,6 +43,7 @@ vim.pack.add({
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
+  { src = "https://github.com/clabby/difftastic.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
   -- These packages are meant for usage with Jujutusu
   { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
@@ -399,6 +400,14 @@ vim.api.nvim_create_user_command("DiffCommit",
   { desc = "Select git commit for DiffviewOpen" }
 )
 
+require("difftastic-nvim").setup({
+  download = true, -- Auto-download pre-built binary
+  vcs = "jj",
+  tree = {
+    width = 25,
+  }
+})
+
 --------------------------------------------------------------------------------
 -- Clojure
 
@@ -597,12 +606,12 @@ vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c
 vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
 
 -- VCS
-vim.keymap.set("n", "<leader>gdd", ":DiffviewOpen<CR>", { desc = "Git Diff current index", })
-vim.keymap.set("n", "<leader>gdm", ":DiffviewOpen master...HEAD", { desc = "Git Diff master ", })
+vim.keymap.set("n", "<leader>gdd", ":Difft @<CR>", { desc = "Git Diff current index", })
+vim.keymap.set("n", "<leader>gdm", ":Difft master..@", { desc = "Git Diff master ", })
 -- Useful for latest change in
-vim.keymap.set("n", "<leader>gdh", ":DiffviewOpen HEAD~1<CR>", { desc = "Git Diff HEAD~1", }) -- 'git show <rev under cursor>'
-vim.keymap.set("n", "<leader>gdr", ":DiffviewOpen <C-r><C-w>^!", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
-vim.keymap.set("n", "<leader>gdo", ":DiffviewOpen ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdh", ":Difft @-<CR>", { desc = "Git Diff HEAD~1", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdr", ":Difft <C-r><C-w>^!", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdo", ":Difft ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gt", ":DiffviewFileHistory %<CR>", { desc = "Git Timemachine" })
 vim.keymap.set("n", "<leader>gl", ":DiffviewFileHistory<CR>", { desc = "Git Log" })
 vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision" })

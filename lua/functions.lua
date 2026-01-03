@@ -185,8 +185,8 @@ M.select_branch_for_diffview = function()
   ))
   M.select_branch(function(choice)
     if choice then
-      print("DiffviewOpen " .. trunk_branch .. "..." .. choice)
-      vim.cmd("DiffviewOpen " .. trunk_branch .. "..." .. choice)
+      print("Diffing " .. trunk_branch .. ".." .. choice)
+      vim.cmd("Difft " .. trunk_branch .. ".." .. choice)
     end
   end)
 end
@@ -209,7 +209,7 @@ M.select_git_commit_for_diffview = function()
     if choice then
       local hash = choice:match("^(%w+)")
       if hash then
-        vim.cmd("DiffviewOpen " .. hash .. "^!")
+        vim.cmd("Difft " .. hash) -- .. "^!")
       end
     end
   end)
