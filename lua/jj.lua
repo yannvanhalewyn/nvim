@@ -77,6 +77,42 @@ local function setup_log_keymaps(buf, original_window)
     end
   end, vim.tbl_extend("force", opts, { desc = "JJ: Describe change" }))
 
+  -- New change after this one
+  vim.keymap.set("n", "n", function()
+    local line = vim.api.nvim_get_current_line()
+    local change_id = extract_change_id(line)
+
+    if change_id and #change_id >= 4 then
+      M.new_change(change_id)
+    else
+      vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "JJ: New change after this" }))
+
+  -- Abandon change
+  vim.keymap.set("n", "A", function()
+    local line = vim.api.nvim_get_current_line()
+    local change_id = extract_change_id(line)
+
+    if change_id and #change_id >= 4 then
+      M.abandon_change(change_id)
+    else
+      vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "JJ: Abandon change" }))
+
+  -- Edit (check out) change
+  vim.keymap.set("n", "e", function()
+    local line = vim.api.nvim_get_current_line()
+    local change_id = extract_change_id(line)
+
+    if change_id and #change_id >= 4 then
+      M.edit_change(change_id)
+    else
+      vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "JJ: Edit (check out) change" }))
+
   -- Move by 2 lines for easier navigation
   vim.keymap.set("n", "j", "2j", vim.tbl_extend("force", opts, { desc = "JJ: Move down 2 lines" }))
   vim.keymap.set("n", "k", "2k", vim.tbl_extend("force", opts, { desc = "JJ: Move up 2 lines" }))
@@ -214,6 +250,69 @@ function M.describe(change_id)
   
   -- Start in insert mode
   vim.cmd("startinsert")
+end
+
+-- Create a new change after the given change
+function M.new_change(change_id)
+  change_id = change_id or "@"
+  
+  -- Run jj new
+  local result = vim.system(
+    { "jj", "new", change_id },
+    { text = true }
+  ):wait()
+  
+  if result.code == 0 then
+    vim.notify("Created new change after " .. change_id, vim.log.levels.INFO)
+    -- Refresh the log
+    M.log()
+  else
+    vim.notify("Failed to create new change: " .. (result.stderr or ""), vim.log.levels.ERROR)
+  end
+end
+
+-- Abandon a change
+function M.abandon_change(change_id)
+  -- Show confirmation prompt
+  vim.ui.input({
+    prompt = string.format("Abandon change %s? (y/N): ", change_id:sub(1, 8))
+  }, function(input)
+    if not input or (input:lower() ~= "y" and input:lower() ~= "yes") then
+      vim.notify("Abandon cancelled", vim.log.levels.INFO)
+      return
+    end
+    
+    -- Run jj abandon
+    local result = vim.system(
+      { "jj", "abandon", change_id },
+      { text = true }
+    ):wait()
+    
+    if result.code == 0 then
+      vim.notify("Abandoned change " .. change_id, vim.log.levels.INFO)
+      -- Refresh the log
+      M.log()
+    else
+      vim.notify("Failed to abandon change: " .. (result.stderr or ""), vim.log.levels.ERROR)
+    end
+  end)
+end
+
+-- Edit (check out) a change
+function M.edit_change(change_id)
+  -- Run jj edit
+  local result = vim.system(
+    { "jj", "edit", change_id },
+    { text = true }
+  ):wait()
+  
+  if result.code == 0 then
+    vim.notify("Checked out change " .. change_id, vim.log.levels.INFO)
+    -- Refresh the log
+    M.log()
+  else
+    vim.notify("Failed to edit change: " .. (result.stderr or ""), vim.log.levels.ERROR)
+  end
 end
 
 -- Run a jj command in a terminal buffer
