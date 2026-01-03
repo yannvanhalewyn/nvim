@@ -450,22 +450,10 @@ end, {
   desc = "Open Difft in a new tab"
 })
 
-
 -- Setup jj commands
-local jj = require("jj")
-
-vim.api.nvim_create_user_command("JJ", function(opts)
-  if opts.args == "" or opts.args == "log" then
-    jj.log()
-  else
-    jj.run(opts.args)
-  end
-end, {
-  nargs = "*",
-  desc = "Run jj commands"
-})
-
-vim.keymap.set("n", "<leader>j", function() jj.log() end, { desc = "JJ Log" })
+local jj = require("jj");
+jj.setup()
+vim.keymap.set("n", "<leader>j", jj.log, { desc = "JJ Log" })
 
 --------------------------------------------------------------------------------
 -- Clojure
