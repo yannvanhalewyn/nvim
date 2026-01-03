@@ -65,6 +65,18 @@ local function setup_log_keymaps(buf, original_window)
     end
   end, vim.tbl_extend("force", opts, { desc = "JJ: Open Difft for change" }))
 
+  -- Describe change
+  vim.keymap.set("n", "d", function()
+    local line = vim.api.nvim_get_current_line()
+    local change_id = extract_change_id(line)
+
+    if change_id and #change_id >= 4 then
+      M.describe(change_id)
+    else
+      vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "JJ: Describe change" }))
+
   -- Move by 2 lines for easier navigation
   vim.keymap.set("n", "j", "2j", vim.tbl_extend("force", opts, { desc = "JJ: Move down 2 lines" }))
   vim.keymap.set("n", "k", "2k", vim.tbl_extend("force", opts, { desc = "JJ: Move up 2 lines" }))
@@ -82,6 +94,126 @@ local function setup_log_keymaps(buf, original_window)
   vim.keymap.set("n", "R", function()
     M.log()
   end, vim.tbl_extend("force", opts, { desc = "JJ: Refresh log" }))
+end
+
+-- Run jj describe for a change (opens editor buffer)
+function M.describe(change_id)
+  change_id = change_id or "@"
+  
+  -- Get current description using jj log
+  local result = vim.system(
+    { "jj", "log", "--no-graph", "-r", change_id, "-T", "description" },
+    { text = true }
+  ):wait()
+  
+  if result.code ~= 0 then
+    vim.notify("Failed to get description: " .. (result.stderr or ""), vim.log.levels.ERROR)
+    return
+  end
+  
+  local description = result.stdout or ""
+  
+  -- Create a new buffer for editing
+  local buf = vim.api.nvim_create_buf(false, false)
+  local temp_file = vim.fn.tempname()
+  
+  -- Set buffer options to make it behave like a file
+  vim.api.nvim_buf_set_name(buf, temp_file)
+  vim.api.nvim_buf_set_option(buf, 'buftype', '')
+  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(buf, 'swapfile', false)
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'jjdescription')
+  
+  -- Split description into lines and set in buffer
+  local lines = vim.split(description, "\n")
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  
+  -- Open buffer in a split
+  vim.cmd('botright split')
+  local win = vim.api.nvim_get_current_win()
+  vim.api.nvim_win_set_buf(win, buf)
+  vim.api.nvim_win_set_height(win, math.floor(vim.o.lines * 0.4))
+  
+  -- Add help text at the bottom
+  local help_lines = {
+    "",
+    "JJ: Save and close to update description, or :cq to abort",
+  }
+  vim.api.nvim_buf_set_lines(buf, -1, -1, false, help_lines)
+  
+  -- Move cursor to first line
+  vim.api.nvim_win_set_cursor(win, { 1, 0 })
+  
+  local aborted = false
+  
+  -- Setup keymaps
+  local function submit()
+    -- Get the buffer content (excluding help lines)
+    local content = vim.api.nvim_buf_get_lines(buf, 0, -1 - #help_lines, false)
+    local new_description = table.concat(content, "\n")
+    
+    -- Write to temp file
+    local file = io.open(temp_file, "w")
+    if file then
+      file:write(new_description)
+      file:close()
+    end
+    
+    -- Run jj describe with the message from file
+    local describe_result = vim.system(
+      { "jj", "describe", "-r", change_id, "-m", new_description },
+      { text = true }
+    ):wait()
+    
+    if describe_result.code == 0 then
+      vim.notify("Description updated for " .. change_id, vim.log.levels.INFO)
+    else
+      vim.notify("Failed to update description: " .. (describe_result.stderr or ""), vim.log.levels.ERROR)
+    end
+    
+    -- Close buffer
+    vim.api.nvim_buf_delete(buf, { force = true })
+    
+    -- Refresh log
+    M.log()
+  end
+  
+  local function abort()
+    aborted = true
+    vim.api.nvim_buf_delete(buf, { force = true })
+    vim.notify("Aborted description edit", vim.log.levels.INFO)
+  end
+  
+  -- Map q to abort, ZZ and C-c C-c to submit
+  vim.keymap.set("n", "q", abort, { buffer = buf, silent = true, desc = "JJ: Abort" })
+  vim.keymap.set("n", "ZZ", submit, { buffer = buf, silent = true, desc = "JJ: Submit" })
+  vim.keymap.set("n", "<C-c><C-c>", submit, { buffer = buf, silent = true, desc = "JJ: Submit" })
+  vim.keymap.set("i", "<C-c><C-c>", function()
+    vim.cmd.stopinsert()
+    submit()
+  end, { buffer = buf, silent = true, desc = "JJ: Submit" })
+  vim.keymap.set("n", "<leader>w", submit, { buffer = buf, silent = true, desc = "JJ: Submit" })
+  
+  -- Handle :wq and :x
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    buffer = buf,
+    callback = function()
+      submit()
+      return true
+    end
+  })
+  
+  -- Cleanup temp file on exit
+  vim.api.nvim_create_autocmd("BufWipeout", {
+    buffer = buf,
+    once = true,
+    callback = function()
+      vim.fn.delete(temp_file)
+    end
+  })
+  
+  -- Start in insert mode
+  vim.cmd("startinsert")
 end
 
 -- Run a jj command in a terminal buffer
