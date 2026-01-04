@@ -17,7 +17,7 @@ M.jj_buffer = nil
 vim.api.nvim_set_hl(0, "JJLogChange", { link = "CursorLine" })
 
 --------------------------------------------------------------------------------
--- State Management
+-- Multi Selection
 --------------------------------------------------------------------------------
 
 -- Selection state (set of change IDs)
@@ -131,10 +131,57 @@ local function close_jj_window()
 end
 
 --------------------------------------------------------------------------------
--- Change operations
+-- Jujutsu API
 --------------------------------------------------------------------------------
 
--- Generic function to open an editor buffer for user input
+local function jj_make_revset(change_ids)
+  return table.concat(change_ids, " | ")
+end
+
+local function jj_get_changes(revset, callback)
+  local template = 'separate(";", change_id.short(), coalesce(description, " ")) ++ "\n---END-CHANGE---\n"'
+
+  run_jj_command(
+    { "jj", "log", "--no-graph", "-r", revset, "-T", template },
+    function(result)
+      local output = result.stdout or ""
+      local changes = {}
+
+      -- Split by end-of-change separator
+      for change_block in output:gmatch("(.-)\n%-%-%-END%-CHANGE%-%-%-\n") do
+        if change_block ~= "" then
+          -- Split on first semicolon only (to handle multiline descriptions)
+          local change_id, description = change_block:match("^([^;]*);(.*)$")
+          if change_id then
+            -- Trim the change_id and preserve description as-is (including newlines)
+            change_id = change_id:gsub("^%s*(.-)%s*$", "%1")
+            table.insert(changes, {
+              change_id = change_id,
+              description = description
+            })
+          end
+        end
+      end
+
+      callback(changes)
+    end,
+    function(result)
+      vim.notify("Failed to get changes: " .. (result.stderr or ""), vim.log.levels.ERROR)
+    end
+  )
+end
+
+local function jj_get_changes_by_ids(change_ids, callback)
+  jj_get_changes(jj_make_revset(change_ids), function(changes)
+    if #changes ~= #change_ids then
+      vim.notify("Could not get change information", vim.log.levels.ERROR)
+      return
+    end
+    callback(changes)
+  end)
+end
+
+-- Open an editor buffer meant to capture user input
 -- @param opts table with:
 --   - content: string - initial content
 --   - filetype: string - buffer filetype
@@ -188,7 +235,6 @@ local function open_editor_buffer(opts)
   -- Setup keymaps
   local keymap_opts = { buffer = buf, silent = true }
   vim.keymap.set("n", "q", abort, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Abort" }))
-  vim.keymap.set("n", "ZZ", submit, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Submit" }))
   vim.keymap.set("n", "<C-c><C-c>", submit, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Submit" }))
   vim.keymap.set("i", "<C-c><C-c>", function()
     vim.cmd.stopinsert()
@@ -214,44 +260,34 @@ local function open_editor_buffer(opts)
   vim.cmd("startinsert")
 end
 
--- Run jj describe for a change (opens editor buffer)
+--------------------------------------------------------------------------------
+-- Basic Operations
+--------------------------------------------------------------------------------
+
 local function describe(change_id)
-  change_id = change_id or "@"
-
-  -- Get current description
-  run_jj_command(
-    { "jj", "log", "--no-graph", "-r", change_id, "-T", "description" },
-    function(result)
-      local description = result.stdout or ""
-
-      open_editor_buffer({
-        content = description,
-        filetype = 'jjdescription',
-        help_text = "JJ: Save and close or hit <C-C> <C-c> to update description, or :cq to abort",
-        on_submit = function(new_description)
-          run_jj_command(
-            { "jj", "describe", "-r", change_id, "-m", new_description },
-            function()
-              vim.notify("Description updated for " .. change_id:sub(1, 8), vim.log.levels.INFO)
-              M.log()
-            end
-          )
-        end,
-        on_abort = function()
-          vim.notify("Aborted description edit", vim.log.levels.INFO)
-        end
-      })
-    end,
-    function(result)
-      vim.notify("Failed to get description: " .. (result.stderr or ""), vim.log.levels.ERROR)
-    end
-  )
+  jj_get_changes_by_ids({ change_id }, function(changes)
+    local description = changes[1].description
+    open_editor_buffer({
+      content = description,
+      filetype = 'jjdescription',
+      help_text = "JJ: Save and close or hit <C-C> <C-c> to update description, or :cq to abort",
+      on_submit = function(new_description)
+        run_jj_command(
+          { "jj", "describe", "-r", change_id, "-m", new_description },
+          function()
+            vim.notify("Description updated for " .. change_id:sub(1, 8), vim.log.levels.INFO)
+            M.log()
+          end
+        )
+      end,
+      on_abort = function()
+        vim.notify("Aborted description edit", vim.log.levels.INFO)
+      end
+    })
+  end)
 end
 
--- Create a new change after the given change
 local function new_change(change_id)
-  change_id = change_id or "@"
-
   run_jj_command(
     { "jj", "new", change_id },
     function()
@@ -261,7 +297,6 @@ local function new_change(change_id)
   )
 end
 
--- Abandon a change
 local function abandon_change(change_id)
   vim.ui.input({
     prompt = string.format("Abandon change %s? (y/N): ", change_id:sub(1, 8))
@@ -281,7 +316,6 @@ local function abandon_change(change_id)
   end)
 end
 
--- Edit (check out) a change
 local function edit_change(change_id)
   run_jj_command(
     { "jj", "edit", change_id },
@@ -296,32 +330,29 @@ end
 -- Rebase operations
 --------------------------------------------------------------------------------
 
-local function select_change(cb)
+local function select_change(opts, cb)
   vim.notify(
-    "Select destination change (navigate with j/k, <CR> to select, <Esc> to cancel)",
+    (opts.prompt or "Select destination change")
+    .. " (navigate with j/k, <CR> to select, <Esc> to cancel)",
     vim.log.levels.INFO
   )
 
-  local opts = { buffer = M.jj_buffer, silent = true }
+  local keymap_opts = { buffer = M.jj_buffer, silent = true }
 
-  -- Confirm destination selection
   vim.keymap.set("n", "<CR>", function()
     with_change_at_cursor(function(change_id)
       print("CHANGE AT CURSOR", change_id)
-      -- Remove temporary keymaps
       vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
       vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-      -- Continue to destination type selection
       cb(change_id)
     end)
-  end, opts)
+  end, keymap_opts)
 
-  -- Cancel rebase
   vim.keymap.set("n", "<Esc>", function()
     vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
     vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
     vim.notify("Selection cancelled", vim.log.levels.INFO)
-  end, opts)
+  end, keymap_opts)
 end
 
 local rebase_source_types = {
@@ -441,7 +472,7 @@ local function rebase_change()
   else
     with_change_at_cursor(function(source_id)
       prompt_source_type(function(source_type)
-        select_change(function(dest_id)
+        select_change({ prompt = "Select change to rebase onto" }, function(dest_id)
           prompt_destination_type(function(dest_type)
             execute_rebase({ source_id }, source_type, dest_id, dest_type)
           end)
@@ -455,211 +486,41 @@ end
 -- Squash operations
 --------------------------------------------------------------------------------
 
--- Generic function to get change data for a revset
--- Returns structured data: { change_id = "...", description = "..." }
--- @param revset string - jj revset expression (e.g., "abc123", "abc123-", "abc123 | def456")
--- @param callback function(changes: table[]) - receives array of {change_id, description} tables
-local function get_changes(revset, callback)
-  -- Use unique separator to mark end of each change entry
-  -- This allows descriptions to be multiline
-  local template = 'separate(";", change_id, coalesce(description, " ")) ++ "\n---END-CHANGE---\n"'
+local function describe_and_squash_changes(source_ids, target_id)
+  local count = #source_ids
+  local all_change_ids = vim.list_extend({}, source_ids)
+  table.insert(all_change_ids, target_id)
 
-  run_jj_command(
-    { "jj", "log", "--no-graph", "-r", revset, "-T", template },
-    function(result)
-      local output = result.stdout or ""
-      local changes = {}
-
-      -- Split by end-of-change separator
-      for change_block in output:gmatch("(.-)\n%-%-%-END%-CHANGE%-%-%-\n") do
-        if change_block ~= "" then
-          -- Split on first semicolon only (to handle multiline descriptions)
-          local change_id, description = change_block:match("^([^;]*);(.*)$")
-          if change_id then
-            -- Trim the change_id and preserve description as-is (including newlines)
-            change_id = change_id:gsub("^%s*(.-)%s*$", "%1")
-            table.insert(changes, {
-              change_id = change_id,
-              description = description or ""
-            })
-          end
-        end
-      end
-
-      callback(changes)
-    end,
-    function(result)
-      vim.notify("Failed to get changes: " .. (result.stderr or ""), vim.log.levels.ERROR)
-    end
-  )
-end
-
--- Squash change into its parent
-function M.squash_to_parent(change_id)
-  -- Get parent and source change using revset
-  -- Revset: "change_id- | change_id" gives us [parent, source] in that order
-  local revset = string.format("%s- | %s", change_id, change_id)
-
-  get_changes(revset, function(changes)
-    if #changes < 2 then
-      print(change_id, vim.inspect(changes))
-      vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
-      return
-    end
-
-    -- changes[1] is parent (target), changes[2] is source
-    local parent = changes[1]
-    local source = changes[2]
-    local combined = parent.description .. "\n\n" .. source.description
-
-    open_editor_buffer({
-      content = combined,
-      filetype = 'jjdescription',
-      help_text = string.format("JJ: Squashing %s into parent %s. Edit message and submit with <C-c><C-c>",
-        change_id:sub(1, 8), parent.change_id:sub(1, 8)),
-      on_submit = function(message)
-        run_jj_command(
-          { "jj", "squash", "-r", change_id, "-m", message },
-          function()
-            vim.notify("Squashed " .. change_id:sub(1, 8) .. " into parent", vim.log.levels.INFO)
-            clear_selections()
-            M.log()
-          end,
-          function(result)
-            vim.notify("Squash failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
-          end
-        )
-      end,
-      on_abort = function()
-        vim.notify("Squash cancelled", vim.log.levels.INFO)
-      end
-    })
-  end)
-end
-
--- Squash change into custom target
-function M.squash_to_target(change_id)
-  vim.notify("Select target to squash into (navigate with j/k, <CR> to select, <Esc> to cancel)", vim.log.levels.INFO)
-
-  -- Set up temporary keymaps for target selection
-  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
-    local opts = { buffer = M.jj_buffer, silent = true }
-
-    -- Confirm target selection
-    vim.keymap.set("n", "<CR>", function()
-      local line = vim.api.nvim_get_current_line()
-      local target_id = extract_change_id(line)
-
-      if target_id and #target_id >= 4 then
-        -- Remove temporary keymaps
-        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-
-        -- Get combined descriptions using revset
-        -- Revset: "target_id | change_id" gives us [target, source]
-        local revset = string.format("%s | %s", target_id, change_id)
-
-        get_changes(revset, function(changes)
-          if #changes < 2 then
-            vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
-            return
-          end
-
-          -- changes[1] is target, changes[2] is source
-          local target = changes[1]
-          local source = changes[2]
-          local combined = target.description .. "\n\n" .. source.description
-
-          open_editor_buffer({
-            content = combined,
-            filetype = 'jjdescription',
-            help_text = string.format("JJ: Squashing %s into %s. Edit message and submit with <C-c><C-c>",
-              change_id:sub(1, 8), target_id:sub(1, 8)),
-            on_submit = function(message)
-              run_jj_command(
-                { "jj", "squash", "--from", change_id, "--into", target_id, "-m", message },
-                function()
-                  vim.notify(string.format(
-                    "Squashed %s into %s",
-                    change_id:sub(1, 8),
-                    target_id:sub(1, 8)
-                  ), vim.log.levels.INFO)
-                  clear_selections()
-                  M.log()
-                end,
-                function(result)
-                  vim.notify("Squash failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
-                end
-              )
-            end,
-            on_abort = function()
-              vim.notify("Squash cancelled", vim.log.levels.INFO)
-            end
-          })
-        end)
-      else
-        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
-      end
-    end, opts)
-
-    -- Cancel squash
-    vim.keymap.set("n", "<Esc>", function()
-      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-      vim.notify("Squash cancelled", vim.log.levels.INFO)
-    end, opts)
-  end
-end
-
--- Multi-select squash: squash all selected changes into a target
-function M.squash_multi_select(target_id)
-  local selected_ids = get_selected_ids()
-  local count = #selected_ids
-
-  if count == 0 then
-    vim.notify("No changes selected", vim.log.levels.WARN)
-    return
-  end
-
-  -- Build revset for all changes (target + all sources)
-  local revset_parts = { target_id }
-  for _, id in ipairs(selected_ids) do
-    table.insert(revset_parts, id)
-  end
-  local revset = table.concat(revset_parts, " | ")
-
-  -- Get all descriptions
-  get_changes(revset, function(changes)
-    if #changes < 1 then
-      vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
-      return
-    end
-
-    -- First change is target, rest are sources
-    local combined_parts = {}
+  jj_get_changes_by_ids(all_change_ids, function(changes)
+    local change_descriptions = {}
     for _, change in ipairs(changes) do
-      if change.description ~= "" then
-        table.insert(combined_parts, change.description)
+      if vim.trim(change.description) ~= "" then
+        table.insert(
+          change_descriptions,
+          string.format("JJ: %s\n%s", change.change_id, change.description)
+        )
       end
     end
-    local combined = table.concat(combined_parts, "\n\n")
 
     open_editor_buffer({
-      content = combined,
+      content = table.concat(change_descriptions, "\n"),
       filetype = 'jjdescription',
-      help_text = string.format("JJ: Squashing %d change%s into %s. Edit message and submit with <C-c><C-c>",
-        count, count == 1 and "" or "s", target_id:sub(1, 8)),
-      on_submit = function(message)
-        -- Build revset for sources
-        local from_revset = table.concat(selected_ids, " | ")
+      help_text = string.format(
+        "JJ: Squashing %d %s into %s. Edit message and submit with <C-c><C-c> or close window.",
+        count,
+        count == 1 and "change" or "changes",
+        target_id
+      ),
 
+      on_submit = function(message)
+        local from_revset = jj_make_revset(source_ids)
         run_jj_command(
           { "jj", "squash", "--from", from_revset, "--into", target_id, "-m", message },
           function()
             vim.notify(string.format(
-              "Squashed %d change%s into %s",
-              count, count == 1 and "" or "s",
-              target_id:sub(1, 8)
+              "Squashed %d %s into %s",
+              count, count == 1 and "change" or "changes",
+              target_id
             ), vim.log.levels.INFO)
             clear_selections()
             M.log()
@@ -669,10 +530,29 @@ function M.squash_multi_select(target_id)
           end
         )
       end,
+
       on_abort = function()
         vim.notify("Squash cancelled", vim.log.levels.INFO)
       end
     })
+  end)
+end
+
+local function squash_change()
+  with_change_at_cursor(function(change_id)
+    if get_selection_count() > 0 then
+      local selected_ids = get_selected_ids()
+      describe_and_squash_changes(selected_ids, change_id)
+    else
+      describe_and_squash_changes({ change_id }, change_id .. "-")
+    end
+  end)
+end
+
+-- Squash change into custom target
+local function squash_to_target(change_id)
+  select_change({ prompt = "Select target to squash into" }, function(target_id)
+    describe_and_squash_changes({ change_id }, target_id)
   end)
 end
 
@@ -736,6 +616,11 @@ local function setup_log_keymaps(buf, original_window)
     vim.keymap.set("n", key, action, vim.tbl_extend("force", opts, { desc = "JJ: " .. desc }))
   end
 
+  -- Navigation
+  map("q", close_jj_window, "Close window")
+  map("j", "2j", "Move down 2 lines")
+  map("k", "2k", "Move up 2 lines")
+
   -- Open difftastic for change under cursor
   map("<CR>", function()
     with_change_at_cursor(function(change_id)
@@ -747,25 +632,14 @@ local function setup_log_keymaps(buf, original_window)
   end, "Open Difft for change")
 
   -- Change operations
+  map("R", M.log, "Refresh log")
   map("d", function() with_change_at_cursor(describe) end, "Describe change")
   map("n", function() with_change_at_cursor(new_change) end, "New change after this")
   map("A", function() with_change_at_cursor(abandon_change) end, "Abandon change")
   map("e", function() with_change_at_cursor(edit_change) end, "Edit (check out) change")
-
-  -- Rebase operations (handle both single and multi-select)
   map("r", rebase_change, "Rebase change")
-
-  -- Squash operations (handle both single and multi-select)
-  map("s", function()
-    if get_selection_count() > 0 then
-      -- Multi-select: use cursor as target
-      with_change_at_cursor(M.squash_multi_select)
-    else
-      with_change_at_cursor(M.squash_to_parent)
-    end
-  end, "Squash into parent (or multi-select into cursor)")
-
-  map("S", function() with_change_at_cursor(M.squash_to_target) end, "Squash into target")
+  map("s", squash_change, "Squash change")
+  map("S", function() with_change_at_cursor(squash_to_target) end, "Squash into target")
 
   -- Multi-select
   map("m", toggle_selection_at_cursor, "Toggle selection")
@@ -774,14 +648,6 @@ local function setup_log_keymaps(buf, original_window)
     update_selection_display()
     vim.notify("Cleared all selections", vim.log.levels.INFO)
   end, "Clear selections")
-
-  -- Navigation
-  map("j", "2j", "Move down 2 lines")
-  map("k", "2k", "Move up 2 lines")
-
-  -- Window management
-  map("q", close_jj_window, "Close window")
-  map("R", M.log, "Refresh log")
 end
 
 --------------------------------------------------------------------------------
