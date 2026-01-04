@@ -26,6 +26,9 @@ end]]
     pp = "(clojure.pprint/pprint $1)",
     unalias = "(ns-unalias *ns* '$1)",
     unmap = "(ns-unmap *ns* '$1)",
+    bench = [[(require '[criterium.core :as c])
+(c/quick-bench
+  $0)]],
     ["write-edn"] = [[(binding [*print-namespace-maps* false]
   (clojure.pprint/pprint ${1:data} (clojure.java.io/writer "${2:filename}")))]],
     ["read-csv"] = [=[(with-open [rdr (io/reader (io/file ${1:filename}))]

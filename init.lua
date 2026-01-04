@@ -24,6 +24,42 @@ vim.g.maplocalleader = ","
 --------------------------------------------------------------------------------
 -- Require Plugins
 
+-- Add local jujutsu plugin to runtimepath for development
+vim.opt.runtimepath:prepend("~/code/jujutsu.nvim")
+
+local jj = require("jujutsu-nvim")
+jj.setup({
+  -- diff_preset = "diffview",
+  help_position = "bottom_right",
+  keymap = {
+    -- w = { cmd = function() print("OK!") end, desc = "OK" },
+    z = { cmd = "other", desc = "PRStack Sync" },
+    ["<C-p>"] = { cmd = "other", desc = "Create PR" },
+    ["<C-d>"] = {
+      cmd = function()
+        jj.with_change_at_cursor(function(change_id)
+          vim.notify("Custom diff command: " .. change_id)
+        end)
+      end,
+      desc = "Custom Diff Command"
+    }
+  },
+})
+
+-- local jj = require("jujutsu-nvim")
+-- jj.setup({
+--   -- diff_preset = "diffview",
+--   keymap = {
+--     w = function() print("OK!") end,
+--     i = "quit",
+--     ["<C-d>"] = function()
+--       jj.with_change_at_cursor(function(change_id)
+--         vim.notify("Custom diff command: " .. change_id)
+--       end)
+--     end,
+--   }
+-- })
+
 vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
@@ -46,6 +82,7 @@ vim.pack.add({
   { src = "https://github.com/clabby/difftastic.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
   -- These packages are meant for usage with Jujutusu
+  -- { src = "https://github.com/yannvanhalewyn/jujutsu.nvim" },
   { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
   { src = "https://github.com/julienvincent/hunk.nvim" },      -- Execute --interactive operations with Jujutusu
   -- Util
@@ -65,6 +102,56 @@ vim.pack.add({
   { src = "https://github.com/supermaven-inc/supermaven-nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" }
 })
+
+-- vim.pack.add({ "https://github.com/nicolasgb/jj.nvim" })
+-- require("jj").setup({})
+--
+-- -- Core commands
+-- local cmd = require("jj.cmd")
+-- vim.keymap.set("n", "<leader>jd", cmd.describe, { desc = "JJ describe" })
+-- vim.keymap.set("n", "<leader>jl", cmd.log, { desc = "JJ log" })
+-- vim.keymap.set("n", "<leader>je", cmd.edit, { desc = "JJ edit" })
+-- vim.keymap.set("n", "<leader>jn", cmd.new, { desc = "JJ new" })
+-- vim.keymap.set("n", "<leader>js", cmd.status, { desc = "JJ status" })
+-- vim.keymap.set("n", "<leader>sj", cmd.squash, { desc = "JJ squash" })
+-- vim.keymap.set("n", "<leader>ju", cmd.undo, { desc = "JJ undo" })
+-- vim.keymap.set("n", "<leader>jy", cmd.redo, { desc = "JJ redo" })
+-- vim.keymap.set("n", "<leader>jr", cmd.rebase, { desc = "JJ rebase" })
+-- vim.keymap.set("n", "<leader>jbc", cmd.bookmark_create, { desc = "JJ bookmark create" })
+-- vim.keymap.set("n", "<leader>jbd", cmd.bookmark_delete, { desc = "JJ bookmark delete" })
+-- vim.keymap.set("n", "<leader>jbm", cmd.bookmark_move, { desc = "JJ bookmark move" })
+-- vim.keymap.set("n", "<leader>ja", cmd.abandon, { desc = "JJ abandon" })
+-- vim.keymap.set("n", "<leader>jf", cmd.fetch, { desc = "JJ fetch" })
+-- vim.keymap.set("n", "<leader>jp", cmd.push, { desc = "JJ push" })
+-- vim.keymap.set("n", "<leader>jpr", cmd.open_pr, { desc = "JJ open PR from bookmark in current revision or parent" })
+-- vim.keymap.set("n", "<leader>jpl", function()
+--   cmd.open_pr { list_bookmarks = true }
+-- end, { desc = "JJ open PR listing available bookmarks" })
+--
+--
+-- -- Diff commands
+-- local diff = require("jj.diff")
+-- vim.keymap.set("n", "<leader>df", function() diff.open_vdiff() end, { desc = "JJ diff current buffer" })
+-- vim.keymap.set("n", "<leader>dF", function() diff.open_hsplit() end, { desc = "JJ hdiff current buffer" })
+--
+-- -- Pickers
+-- local picker = require("jj.picker")
+-- vim.keymap.set("n", "<leader>gj", function() picker.status() end, { desc = "JJ Picker status" })
+-- vim.keymap.set("n", "<leader>jgh", function() picker.file_history() end, { desc = "JJ Picker history" })
+--
+-- -- Some functions like `log` can take parameters
+-- vim.keymap.set("n", "<leader>jL", function()
+--   cmd.log {
+--     revisions = "'all()'", -- equivalent to jj log -r ::
+--   }
+-- end, { desc = "JJ log all" })
+--
+--
+-- -- This is an alias i use for moving bookmarks its so good
+-- vim.keymap.set("n", "<leader>jt", function()
+--   cmd.j "tug"
+--   cmd.log {}
+-- end, { desc = "JJ tug" })
 
 --------------------------------------------------------------------------------
 -- Picker and file trees
@@ -178,8 +265,7 @@ require("catppuccin").setup({
         -- ["@lsp.type.type.clojure"] = { fg = colors.white },
         -- ["@lsp.type.function.clojure"] = { fg = colors.white },
         ["@lsp.type.class.clojure"] = { fg = colors.white },
-        -- this doesn't work, why?
-        ["@lsp.type.variable.clojure"] = { fg = colors.yellow },
+        -- ["@lsp.type.variable.clojure"] = { fg = colors.yellow },
 
         ["@function.macro.clojure"] = { fg = colors.white },
         ["@function.call.clojure"] = { fg = colors.white },
@@ -218,7 +304,6 @@ vim.cmd.colorscheme("catppuccin")
 require("statusline")
 vim.cmd.highlight("statusline guibg=" .. statusline_bg)
 
--- Disable semantic HL for functions because it highlights 'defprotocol',
 -- 'reify' and functions the same way. Disabling this fg will fallback to
 -- non-semantic treesitter highlights which are more distinct.
 -- The protocol name in reify blocks is also a @lsp.type.function in clojure
@@ -393,6 +478,10 @@ vim.api.nvim_create_user_command("ToggleDocumentHighlight", toggle_document_high
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
+    -- Disable semantic HL for functions because it's slower and not necessary
+    if client then
+      client.server_capabilities.semanticTokensProvider = nil
+    end
     if client and client:supports_method("textDocument/documentHighlight", event.buf) then
       highlight_registry[event.buf] = enable_document_highlight(event.buf)
     end
@@ -439,11 +528,6 @@ end, {
   nargs = "*",
   desc = "Open Difft in a new tab"
 })
-
--- Setup jj commands
-local jj = require("jj");
-jj.setup()
-vim.keymap.set("n", "<leader>j", jj.log, { desc = "JJ Log" })
 
 --------------------------------------------------------------------------------
 -- Clojure
@@ -528,6 +612,16 @@ kulala.setup()
 vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end,
   { desc = "Buffer Local Keymaps (which-key)" })
 
+-- local jj = require("jujutsu-nvim")
+-- jj.setup({
+--   diff_preset = "none"
+-- })
+require("neo-tree").setup({
+  window = {
+    width = 30,
+  }
+})
+
 -- Files and buffers
 vim.keymap.set("n", "<leader>so", ":update<CR> :source<CR>", { desc = "Source Current File" })
 vim.keymap.set("n", "<leader>fs", ":write<CR>", { desc = "File Save" })
@@ -542,6 +636,7 @@ vim.keymap.set("n", "<leader>fg", ":Pick files tool='git'<CR>", { desc = "Files 
 vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live" })
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>", { desc = "Resume Find" })
 vim.keymap.set("n", "<leader>d", ":Oil<CR>", { desc = "Browse Directory" })
+vim.keymap.set("n", "<leader>j", ":JJ<CR>", { desc = "JJ Log" })
 vim.keymap.set("n", "<leader>N", ":Neotree reveal<CR>", { desc = "Neotree" })
 vim.keymap.set("n", "<leader>nf", ":Neotree float<cr>", { desc = "Neotree Git Status" })
 vim.keymap.set("n", "<leader>nd", ":Neotree document_symbols right<CR>", { desc = "Neotree Document Symbols" })
