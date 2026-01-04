@@ -31,7 +31,7 @@ M.rebase_state = {
   destination_type = nil,
 }
 
--- Selection state
+-- Selection state (set of change IDs)
 M.selected_changes = {}
 
 -- Clear rebase state
@@ -45,6 +45,43 @@ local function clear_rebase_state()
     destination_id = nil,
     destination_type = nil,
   }
+end
+
+-- Clear all selections
+local function clear_selections()
+  M.selected_changes = {}
+  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
+    -- Clear all extmarks for selections
+    local ns_id = vim.api.nvim_create_namespace("jj_selections")
+    vim.api.nvim_buf_clear_namespace(M.jj_buffer, ns_id, 0, -1)
+  end
+end
+
+-- Toggle selection for a change
+local function toggle_selection(change_id)
+  if M.selected_changes[change_id] then
+    M.selected_changes[change_id] = nil
+  else
+    M.selected_changes[change_id] = true
+  end
+end
+
+-- Get count of selected changes
+local function get_selection_count()
+  local count = 0
+  for _ in pairs(M.selected_changes) do
+    count = count + 1
+  end
+  return count
+end
+
+-- Get list of selected change IDs
+local function get_selected_ids()
+  local ids = {}
+  for id, _ in pairs(M.selected_changes) do
+    table.insert(ids, id)
+  end
+  return ids
 end
 
 --------------------------------------------------------------------------------
@@ -511,6 +548,7 @@ function M.squash_to_parent(change_id)
           { "jj", "squash", "-r", change_id, "-m", message },
           function()
             vim.notify("Squashed " .. change_id:sub(1, 8) .. " into parent", vim.log.levels.INFO)
+            clear_selections()
             M.log()
           end,
           function(result)
@@ -572,6 +610,7 @@ function M.squash_to_target(change_id)
                     change_id:sub(1, 8),
                     target_id:sub(1, 8)
                   ), vim.log.levels.INFO)
+                  clear_selections()
                   M.log()
                 end,
                 function(result)
@@ -595,6 +634,148 @@ function M.squash_to_target(change_id)
       vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
       vim.notify("Squash cancelled", vim.log.levels.INFO)
     end, opts)
+  end
+end
+
+-- Multi-select squash: squash all selected changes into a target
+function M.squash_multi_select()
+  local selected_ids = get_selected_ids()
+  local count = #selected_ids
+
+  if count == 0 then
+    vim.notify("No changes selected", vim.log.levels.WARN)
+    return
+  end
+
+  vim.notify(string.format("Select target to squash %d change%s into (navigate with j/k, <CR> to select, <Esc> to cancel)",
+    count, count == 1 and "" or "s"), vim.log.levels.INFO)
+
+  -- Set up temporary keymaps for target selection
+  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
+    local opts = { buffer = M.jj_buffer, silent = true }
+
+    -- Confirm target selection
+    vim.keymap.set("n", "<CR>", function()
+      local line = vim.api.nvim_get_current_line()
+      local target_id = extract_change_id(line)
+
+      if target_id and #target_id >= 4 then
+        -- Remove temporary keymaps
+        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+
+        -- Build revset for all changes (target + all sources)
+        local revset_parts = { target_id }
+        for _, id in ipairs(selected_ids) do
+          table.insert(revset_parts, id)
+        end
+        local revset = table.concat(revset_parts, " | ")
+
+        -- Get all descriptions
+        get_changes(revset, function(changes)
+          if #changes < 1 then
+            vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
+            return
+          end
+
+          -- First change is target, rest are sources
+          local combined_parts = {}
+          for _, change in ipairs(changes) do
+            if change.description ~= "" then
+              table.insert(combined_parts, change.description)
+            end
+          end
+          local combined = table.concat(combined_parts, "\n\n")
+
+          open_editor_buffer({
+            content = combined,
+            filetype = 'jjdescription',
+            help_text = string.format("JJ: Squashing %d change%s into %s. Edit message and submit with <C-c><C-c>",
+              count, count == 1 and "" or "s", target_id:sub(1, 8)),
+            on_submit = function(message)
+              -- Build revset for sources
+              local from_revset = table.concat(selected_ids, " | ")
+
+              run_jj_command(
+                { "jj", "squash", "--from", from_revset, "--into", target_id, "-m", message },
+                function()
+                  vim.notify(string.format(
+                    "Squashed %d change%s into %s",
+                    count, count == 1 and "" or "s",
+                    target_id:sub(1, 8)
+                  ), vim.log.levels.INFO)
+                  clear_selections()
+                  M.log()
+                end,
+                function(result)
+                  vim.notify("Squash failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
+                end
+              )
+            end,
+            on_abort = function()
+              vim.notify("Squash cancelled", vim.log.levels.INFO)
+            end
+          })
+        end)
+      else
+        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+      end
+    end, opts)
+
+    -- Cancel squash
+    vim.keymap.set("n", "<Esc>", function()
+      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+      vim.notify("Squash cancelled", vim.log.levels.INFO)
+    end, opts)
+  end
+end
+
+--------------------------------------------------------------------------------
+-- Selection UI
+--------------------------------------------------------------------------------
+
+-- Update visual indicators for selections
+local function update_selection_display()
+  if not M.jj_buffer or not vim.api.nvim_buf_is_valid(M.jj_buffer) then
+    return
+  end
+
+  local ns_id = vim.api.nvim_create_namespace("jj_selections")
+  vim.api.nvim_buf_clear_namespace(M.jj_buffer, ns_id, 0, -1)
+
+  -- Add visual indicators for each selected change
+  local lines = vim.api.nvim_buf_get_lines(M.jj_buffer, 0, -1, false)
+  for i, line in ipairs(lines) do
+    local change_id = extract_change_id(line)
+    if change_id and M.selected_changes[change_id] then
+      -- Add checkmark at the start of the line
+      vim.api.nvim_buf_set_extmark(M.jj_buffer, ns_id, i - 1, 0, {
+        virt_text = {{ "✓ ", "DiffAdd" }},
+        virt_text_pos = "overlay",
+      })
+      -- Highlight the line
+      vim.api.nvim_buf_add_highlight(M.jj_buffer, ns_id, "Visual", i - 1, 0, -1)
+    end
+  end
+
+  -- Update status message
+  local count = get_selection_count()
+  if count > 0 then
+    vim.notify(string.format("%d change%s selected", count, count == 1 and "" or "s"), vim.log.levels.INFO)
+  end
+end
+
+-- Toggle selection on current line
+local function toggle_selection_at_cursor()
+  local line = vim.api.nvim_get_current_line()
+  local change_id = extract_change_id(line)
+
+  if change_id and #change_id >= 4 then
+    toggle_selection(change_id)
+    update_selection_display()
+  else
+    vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
   end
 end
 
@@ -624,8 +805,25 @@ local function setup_log_keymaps(buf, original_window)
   map("A", with_change_at_cursor(M.abandon_change), "Abandon change")
   map("e", with_change_at_cursor(M.edit_change), "Edit (check out) change")
   map("r", with_change_at_cursor(M.rebase_change), "Rebase change")
-  map("s", with_change_at_cursor(M.squash_to_parent), "Squash into parent")
+
+  -- Squash operations (handle both single and multi-select)
+  map("s", function()
+    if get_selection_count() > 0 then
+      M.squash_multi_select()
+    else
+      with_change_at_cursor(M.squash_to_parent)()
+    end
+  end, "Squash into parent (or multi-select)")
+
   map("S", with_change_at_cursor(M.squash_to_target), "Squash into target")
+
+  -- Multi-select
+  map("m", toggle_selection_at_cursor, "Toggle selection")
+  map("c", function()
+    clear_selections()
+    update_selection_display()
+    vim.notify("Cleared all selections", vim.log.levels.INFO)
+  end, "Clear selections")
 
   -- Navigation
   map("j", "2j", "Move down 2 lines")
