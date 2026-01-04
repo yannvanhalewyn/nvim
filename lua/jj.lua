@@ -17,6 +17,37 @@ M.jj_buffer = nil
 vim.api.nvim_set_hl(0, "JJLogChange", { link = "CursorLine" })
 
 --------------------------------------------------------------------------------
+-- State Management
+--------------------------------------------------------------------------------
+
+-- Rebase state machine
+M.rebase_state = {
+  active = false,
+  step = nil,  -- 'source_type', 'destination_select', 'destination_type'
+  change_id = nil,
+  change_ids = {},  -- For multi-select
+  source_type = nil,
+  destination_id = nil,
+  destination_type = nil,
+}
+
+-- Selection state
+M.selected_changes = {}
+
+-- Clear rebase state
+local function clear_rebase_state()
+  M.rebase_state = {
+    active = false,
+    step = nil,
+    change_id = nil,
+    change_ids = {},
+    source_type = nil,
+    destination_id = nil,
+    destination_type = nil,
+  }
+end
+
+--------------------------------------------------------------------------------
 -- Utilities
 --------------------------------------------------------------------------------
 
@@ -227,6 +258,154 @@ function M.edit_change(change_id)
 end
 
 --------------------------------------------------------------------------------
+-- Rebase operations
+--------------------------------------------------------------------------------
+
+-- Start rebase flow - prompt for source type
+function M.rebase_change(change_id)
+  clear_rebase_state()
+  M.rebase_state.active = true
+  M.rebase_state.change_id = change_id
+  M.rebase_state.step = 'source_type'
+  
+  vim.ui.input({
+    prompt = "Source type: (r)evision [single], (s)ource [subtree], (b)ranch → "
+  }, function(input)
+    if not input or input == "" then
+      input = "r"  -- Default to revision
+    end
+    
+    input = input:lower()
+    if input == "r" or input == "s" or input == "b" then
+      M.rebase_state.source_type = input
+      M._rebase_select_destination()
+    else
+      vim.notify("Invalid source type. Cancelled.", vim.log.levels.WARN)
+      clear_rebase_state()
+    end
+  end)
+end
+
+-- Step 2: Select destination change
+function M._rebase_select_destination()
+  M.rebase_state.step = 'destination_select'
+  vim.notify("Select destination change (navigate with j/k, <CR> to select, <Esc> to cancel)", vim.log.levels.INFO)
+  
+  -- Set up temporary keymaps for destination selection
+  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
+    local opts = { buffer = M.jj_buffer, silent = true }
+    
+    -- Confirm destination selection
+    vim.keymap.set("n", "<CR>", function()
+      local line = vim.api.nvim_get_current_line()
+      local dest_id = extract_change_id(line)
+      
+      if dest_id and #dest_id >= 4 then
+        M.rebase_state.destination_id = dest_id
+        -- Remove temporary keymaps
+        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+        -- Continue to destination type selection
+        M._rebase_select_destination_type()
+      else
+        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
+      end
+    end, opts)
+    
+    -- Cancel rebase
+    vim.keymap.set("n", "<Esc>", function()
+      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+      vim.notify("Rebase cancelled", vim.log.levels.INFO)
+      clear_rebase_state()
+    end, opts)
+  end
+end
+
+-- Step 3: Select destination type
+function M._rebase_select_destination_type()
+  M.rebase_state.step = 'destination_type'
+  
+  vim.ui.input({
+    prompt = "Destination type: (A)fter, (B)efore, (d)estination [default] → "
+  }, function(input)
+    if not input or input == "" then
+      input = "d"  -- Default to -d
+    end
+    
+    if input == "A" or input == "B" or input == "d" then
+      M.rebase_state.destination_type = input
+      M._rebase_execute()
+    else
+      vim.notify("Invalid destination type. Cancelled.", vim.log.levels.WARN)
+      clear_rebase_state()
+    end
+  end)
+end
+
+-- Step 4: Execute rebase command
+function M._rebase_execute()
+  local state = M.rebase_state
+  
+  -- Build command arguments
+  local args = { "jj", "rebase" }
+  
+  -- Add source flag
+  if state.source_type == "r" then
+    table.insert(args, "-r")
+  elseif state.source_type == "s" then
+    table.insert(args, "-s")
+  elseif state.source_type == "b" then
+    table.insert(args, "-b")
+  end
+  table.insert(args, state.change_id)
+  
+  -- Add destination flag
+  if state.destination_type == "A" then
+    table.insert(args, "-A")
+  elseif state.destination_type == "B" then
+    table.insert(args, "-B")
+  elseif state.destination_type == "d" then
+    table.insert(args, "-d")
+  end
+  table.insert(args, state.destination_id)
+  
+  -- Build confirmation message
+  local source_type_name = ({ r = "revision", s = "source", b = "branch" })[state.source_type]
+  local dest_type_name = ({ A = "after", B = "before", d = "onto" })[state.destination_type]
+  local confirm_msg = string.format(
+    "Rebase %s %s %s %s? (y/N): ",
+    source_type_name,
+    state.change_id:sub(1, 8),
+    dest_type_name,
+    state.destination_id:sub(1, 8)
+  )
+  
+  vim.ui.input({ prompt = confirm_msg }, function(input)
+    if not input or (input:lower() ~= "y" and input:lower() ~= "yes") then
+      vim.notify("Rebase cancelled", vim.log.levels.INFO)
+      clear_rebase_state()
+      return
+    end
+    
+    run_jj_command(args, function()
+      vim.notify(string.format(
+        "Rebased %s %s %s",
+        source_type_name,
+        state.change_id:sub(1, 8),
+        dest_type_name,
+        state.destination_id:sub(1, 8)
+      ), vim.log.levels.INFO)
+      clear_rebase_state()
+      M.log()
+    end, function(result)
+      vim.notify("Rebase failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
+      clear_rebase_state()
+    end)
+  end)
+end
+
+--------------------------------------------------------------------------------
 -- Log view and keymaps
 --------------------------------------------------------------------------------
 
@@ -251,6 +430,7 @@ local function setup_log_keymaps(buf, original_window)
   map("n", with_change_at_cursor(M.new_change), "New change after this")
   map("A", with_change_at_cursor(M.abandon_change), "Abandon change")
   map("e", with_change_at_cursor(M.edit_change), "Edit (check out) change")
+  map("r", with_change_at_cursor(M.rebase_change), "Rebase change")
 
   -- Navigation
   map("j", "2j", "Move down 2 lines")
