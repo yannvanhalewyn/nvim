@@ -20,32 +20,8 @@ vim.api.nvim_set_hl(0, "JJLogChange", { link = "CursorLine" })
 -- State Management
 --------------------------------------------------------------------------------
 
--- Rebase state machine
-M.rebase_state = {
-  active = false,
-  step = nil,  -- 'source_type', 'destination_select', 'destination_type'
-  change_id = nil,
-  change_ids = {},  -- For multi-select
-  source_type = nil,
-  destination_id = nil,
-  destination_type = nil,
-}
-
 -- Selection state (set of change IDs)
 M.selected_changes = {}
-
--- Clear rebase state
-local function clear_rebase_state()
-  M.rebase_state = {
-    active = false,
-    step = nil,
-    change_id = nil,
-    change_ids = {},
-    source_type = nil,
-    destination_id = nil,
-    destination_type = nil,
-  }
-end
 
 -- Clear all selections
 local function clear_selections()
@@ -114,18 +90,16 @@ local function extract_change_id(line)
   return change_id
 end
 
--- Higher-order function to wrap operations on the change under cursor
--- Extracts change ID, validates it, and calls the operation function
+-- Extracts the change ID of the change at cursor, and when valid calls the
+-- operation with it.
 local function with_change_at_cursor(operation)
-  return function()
-    local line = vim.api.nvim_get_current_line()
-    local change_id = extract_change_id(line)
+  local line = vim.api.nvim_get_current_line()
+  local change_id = extract_change_id(line)
 
-    if change_id and #change_id >= 4 then
-      operation(change_id)
-    else
-      vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
-    end
+  if change_id and #change_id >= 4 then
+    operation(change_id)
+  else
+    vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
   end
 end
 
@@ -241,7 +215,7 @@ local function open_editor_buffer(opts)
 end
 
 -- Run jj describe for a change (opens editor buffer)
-function M.describe(change_id)
+local function describe(change_id)
   change_id = change_id or "@"
 
   -- Get current description
@@ -275,7 +249,7 @@ function M.describe(change_id)
 end
 
 -- Create a new change after the given change
-function M.new_change(change_id)
+local function new_change(change_id)
   change_id = change_id or "@"
 
   run_jj_command(
@@ -288,7 +262,7 @@ function M.new_change(change_id)
 end
 
 -- Abandon a change
-function M.abandon_change(change_id)
+local function abandon_change(change_id)
   vim.ui.input({
     prompt = string.format("Abandon change %s? (y/N): ", change_id:sub(1, 8))
   }, function(input)
@@ -308,7 +282,7 @@ function M.abandon_change(change_id)
 end
 
 -- Edit (check out) a change
-function M.edit_change(change_id)
+local function edit_change(change_id)
   run_jj_command(
     { "jj", "edit", change_id },
     function()
@@ -322,20 +296,42 @@ end
 -- Rebase operations
 --------------------------------------------------------------------------------
 
--- Start rebase flow - prompt for source type
-function M.rebase_change(change_id)
-  clear_rebase_state()
-  M.rebase_state.active = true
-  M.rebase_state.change_id = change_id
-  M.rebase_state.step = 'source_type'
+local function select_change(cb)
+  vim.notify(
+    "Select destination change (navigate with j/k, <CR> to select, <Esc> to cancel)",
+    vim.log.levels.INFO
+  )
 
-  local source_types = {
-    { key = 'r', label = 'Revision (single change)', flag = '-r' },
-    { key = 's', label = 'Source (subtree - change + descendants)', flag = '-s' },
-    { key = 'b', label = 'Branch (all revisions in branch)', flag = '-b' },
-  }
+  local opts = { buffer = M.jj_buffer, silent = true }
 
-  vim.ui.select(source_types, {
+  -- Confirm destination selection
+  vim.keymap.set("n", "<CR>", function()
+    with_change_at_cursor(function(change_id)
+      print("CHANGE AT CURSOR", change_id)
+      -- Remove temporary keymaps
+      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+      -- Continue to destination type selection
+      cb(change_id)
+    end)
+  end, opts)
+
+  -- Cancel rebase
+  vim.keymap.set("n", "<Esc>", function()
+    vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
+    vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
+    vim.notify("Selection cancelled", vim.log.levels.INFO)
+  end, opts)
+end
+
+local rebase_source_types = {
+  { label = 'Revision (single change)', flag = '-r' },
+  { label = 'Source (subtree - change + descendants)', flag = '-s' },
+  { label = 'Branch (all revisions in branch)', flag = '-b' },
+}
+
+local function prompt_source_type(cb)
+  vim.ui.select(rebase_source_types, {
     prompt = 'Rebase source type:',
     format_item = function(item)
       return string.format('%s - %s', item.key, item.label)
@@ -343,165 +339,32 @@ function M.rebase_change(change_id)
   }, function(choice)
     if not choice then
       vim.notify("Rebase cancelled", vim.log.levels.INFO)
-      clear_rebase_state()
       return
     end
-
-    M.rebase_state.source_type = choice.key
-    M._rebase_select_destination()
+    cb(choice)
   end)
 end
 
--- Step 2: Select destination change
-function M._rebase_select_destination()
-  M.rebase_state.step = 'destination_select'
-  vim.notify("Select destination change (navigate with j/k, <CR> to select, <Esc> to cancel)", vim.log.levels.INFO)
+local rebase_destination_types = {
+  {
+    label = 'Destination (onto - default)',
+    flag = '-d',
+    preposition = 'onto'
+  },
+  {
+    label = 'After destination',
+    flag = '-A',
+    preposition = 'after'
+  },
+  {
+    label = 'Before destination',
+    flag = '-B',
+    preposition = 'before'
+  },
+}
 
-  -- Set up temporary keymaps for destination selection
-  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
-    local opts = { buffer = M.jj_buffer, silent = true }
-
-    -- Confirm destination selection
-    vim.keymap.set("n", "<CR>", function()
-      local line = vim.api.nvim_get_current_line()
-      local dest_id = extract_change_id(line)
-
-      if dest_id and #dest_id >= 4 then
-        M.rebase_state.destination_id = dest_id
-        -- Remove temporary keymaps
-        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-        -- Continue to destination type selection
-        M._rebase_select_destination_type()
-      else
-        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
-      end
-    end, opts)
-
-    -- Cancel rebase
-    vim.keymap.set("n", "<Esc>", function()
-      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-      vim.notify("Rebase cancelled", vim.log.levels.INFO)
-      clear_rebase_state()
-    end, opts)
-  end
-end
-
--- Step 3: Select destination type
-function M._rebase_select_destination_type()
-  M.rebase_state.step = 'destination_type'
-
-  local dest_types = {
-    { key = 'd', label = 'Destination (onto - default)', flag = '-d' },
-    { key = 'A', label = 'After destination', flag = '-A' },
-    { key = 'B', label = 'Before destination', flag = '-B' },
-  }
-
-  vim.ui.select(dest_types, {
-    prompt = 'Rebase destination type:',
-    format_item = function(item)
-      return string.format('%s - %s', item.key, item.label)
-    end
-  }, function(choice)
-    if not choice then
-      vim.notify("Rebase cancelled", vim.log.levels.INFO)
-      clear_rebase_state()
-      return
-    end
-
-    M.rebase_state.destination_type = choice.key
-    M._rebase_execute()
-  end)
-end
-
--- Step 4: Execute rebase command
-function M._rebase_execute()
-  local state = M.rebase_state
-
-  -- Build command arguments
-  local args = { "jj", "rebase" }
-
-  -- Add source flag
-  if state.source_type == "r" then
-    table.insert(args, "-r")
-  elseif state.source_type == "s" then
-    table.insert(args, "-s")
-  elseif state.source_type == "b" then
-    table.insert(args, "-b")
-  end
-  table.insert(args, state.change_id)
-
-  -- Add destination flag
-  if state.destination_type == "A" then
-    table.insert(args, "-A")
-  elseif state.destination_type == "B" then
-    table.insert(args, "-B")
-  elseif state.destination_type == "d" then
-    table.insert(args, "-d")
-  end
-  table.insert(args, state.destination_id)
-
-  -- Build confirmation message
-  local source_type_name = ({ r = "revision", s = "source", b = "branch" })[state.source_type]
-  local dest_type_name = ({ A = "after", B = "before", d = "onto" })[state.destination_type]
-  local confirm_msg = string.format(
-    "Rebase %s %s %s %s? (y/N): ",
-    source_type_name,
-    state.change_id:sub(1, 8),
-    dest_type_name,
-    state.destination_id:sub(1, 8)
-  )
-
-  vim.ui.input({ prompt = confirm_msg }, function(input)
-    if not input or (input:lower() ~= "y" and input:lower() ~= "yes") then
-      vim.notify("Rebase cancelled", vim.log.levels.INFO)
-      clear_rebase_state()
-      return
-    end
-
-    run_jj_command(args, function()
-      vim.notify(string.format(
-        "Rebased %s %s %s",
-        source_type_name,
-        state.change_id:sub(1, 8),
-        dest_type_name,
-        state.destination_id:sub(1, 8)
-      ), vim.log.levels.INFO)
-      clear_rebase_state()
-      M.log()
-    end, function(result)
-      vim.notify("Rebase failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
-      clear_rebase_state()
-    end)
-  end)
-end
-
--- Multi-select rebase: rebase all selected changes onto a destination
-function M.rebase_multi_select(dest_id)
-  local selected_ids = get_selected_ids()
-  local count = #selected_ids
-
-  if count == 0 then
-    vim.notify("No changes selected", vim.log.levels.WARN)
-    return
-  end
-
-  -- Directly go to destination type selection
-  M._rebase_multi_select_destination_type(selected_ids, dest_id)
-end
-
--- Select destination type for multi-select rebase
-function M._rebase_multi_select_destination_type(selected_ids, dest_id)
-  local count = #selected_ids
-
-  local dest_types = {
-    { key = 'd', label = 'Destination (onto - default)', flag = '-d' },
-    { key = 'A', label = 'After destination', flag = '-A' },
-    { key = 'B', label = 'Before destination', flag = '-B' },
-  }
-
-  vim.ui.select(dest_types, {
+local function prompt_destination_type(cb)
+  vim.ui.select(rebase_destination_types, {
     prompt = 'Rebase destination type:',
     format_item = function(item)
       return string.format('%s - %s', item.key, item.label)
@@ -511,47 +374,36 @@ function M._rebase_multi_select_destination_type(selected_ids, dest_id)
       vim.notify("Rebase cancelled", vim.log.levels.INFO)
       return
     end
-
-    -- Step 3: Execute rebase
-    M._rebase_multi_select_execute(selected_ids, dest_id, choice.key)
+    cb(choice)
   end)
 end
 
--- Step 3: Execute multi-select rebase
-function M._rebase_multi_select_execute(selected_ids, dest_id, dest_type)
-  local count = #selected_ids
-
-  -- Build command arguments
+local function execute_rebase(source_ids, source_type, dest_id, dest_type)
   local args = { "jj", "rebase" }
 
   -- Add all selected changes as -r arguments
-  for _, change_id in ipairs(selected_ids) do
-    table.insert(args, "-r")
+  for _, change_id in ipairs(source_ids) do
+    table.insert(args, source_type.flag)
     table.insert(args, change_id)
   end
 
-  -- Add destination flag
-  if dest_type == "A" then
-    table.insert(args, "-A")
-  elseif dest_type == "B" then
-    table.insert(args, "-B")
-  elseif dest_type == "d" then
-    table.insert(args, "-d")
-  end
+  -- Add destination args
+  table.insert(args, dest_type.flag)
   table.insert(args, dest_id)
 
+  local count = #source_ids
+
   -- Build confirmation message
-  local dest_type_name = ({ A = "after", B = "before", d = "onto" })[dest_type]
   local ids_preview = count <= 3
-    and table.concat(vim.tbl_map(function(id) return id:sub(1, 8) end, selected_ids), ", ")
-    or string.format("%s, ... (%d total)", selected_ids[1]:sub(1, 8), count)
+    and table.concat(vim.tbl_map(function(id) return id:sub(1, 8) end, source_ids), ", ")
+    or string.format("%s, ... (%d total)", source_ids[1]:sub(1, 8), count)
 
   local confirm_msg = string.format(
     "Rebase %d change%s [%s] %s %s? (y/N): ",
     count,
     count == 1 and "" or "s",
     ids_preview,
-    dest_type_name,
+    dest_type.preposition,
     dest_id:sub(1, 8)
   )
 
@@ -566,7 +418,7 @@ function M._rebase_multi_select_execute(selected_ids, dest_id, dest_type)
         "Rebased %d change%s %s %s",
         count,
         count == 1 and "" or "s",
-        dest_type_name,
+        dest_type.preposition,
         dest_id:sub(1, 8)
       ), vim.log.levels.INFO)
       clear_selections()
@@ -575,6 +427,28 @@ function M._rebase_multi_select_execute(selected_ids, dest_id, dest_type)
       vim.notify("Rebase failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
     end)
   end)
+end
+
+local function rebase_change()
+  if get_selection_count() > 0 then
+    local source_ids = get_selected_ids()
+
+    with_change_at_cursor(function (dest_id)
+      prompt_destination_type(function(dest_type)
+        execute_rebase(source_ids, rebase_source_types[1], dest_id, dest_type)
+      end)
+    end)
+  else
+    with_change_at_cursor(function(source_id)
+      prompt_source_type(function(source_type)
+        select_change(function(dest_id)
+          prompt_destination_type(function(dest_type)
+            execute_rebase({ source_id }, source_type, dest_id, dest_type)
+          end)
+        end)
+      end)
+    end)
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -863,40 +737,35 @@ local function setup_log_keymaps(buf, original_window)
   end
 
   -- Open difftastic for change under cursor
-  map("<CR>", with_change_at_cursor(function(change_id)
-    if original_window and vim.api.nvim_win_is_valid(original_window) then
-      vim.api.nvim_set_current_win(original_window)
-    end
-    vim.cmd("DifftTab " .. change_id)
-  end), "Open Difft for change")
+  map("<CR>", function()
+    with_change_at_cursor(function(change_id)
+      if original_window and vim.api.nvim_win_is_valid(original_window) then
+        vim.api.nvim_set_current_win(original_window)
+      end
+      vim.cmd("DifftTab " .. change_id)
+    end)
+  end, "Open Difft for change")
 
   -- Change operations
-  map("d", with_change_at_cursor(M.describe), "Describe change")
-  map("n", with_change_at_cursor(M.new_change), "New change after this")
-  map("A", with_change_at_cursor(M.abandon_change), "Abandon change")
-  map("e", with_change_at_cursor(M.edit_change), "Edit (check out) change")
+  map("d", function() with_change_at_cursor(describe) end, "Describe change")
+  map("n", function() with_change_at_cursor(new_change) end, "New change after this")
+  map("A", function() with_change_at_cursor(abandon_change) end, "Abandon change")
+  map("e", function() with_change_at_cursor(edit_change) end, "Edit (check out) change")
 
   -- Rebase operations (handle both single and multi-select)
-  map("r", function()
-    if get_selection_count() > 0 then
-      -- Multi-select: use cursor as destination
-      with_change_at_cursor(M.rebase_multi_select)()
-    else
-      with_change_at_cursor(M.rebase_change)()
-    end
-  end, "Rebase change (or multi-select onto cursor)")
+  map("r", rebase_change, "Rebase change")
 
   -- Squash operations (handle both single and multi-select)
   map("s", function()
     if get_selection_count() > 0 then
       -- Multi-select: use cursor as target
-      with_change_at_cursor(M.squash_multi_select)()
+      with_change_at_cursor(M.squash_multi_select)
     else
-      with_change_at_cursor(M.squash_to_parent)()
+      with_change_at_cursor(M.squash_to_parent)
     end
   end, "Squash into parent (or multi-select into cursor)")
 
-  map("S", with_change_at_cursor(M.squash_to_target), "Squash into target")
+  map("S", function() with_change_at_cursor(M.squash_to_target) end, "Squash into target")
 
   -- Multi-select
   map("m", toggle_selection_at_cursor, "Toggle selection")
