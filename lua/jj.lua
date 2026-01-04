@@ -115,14 +115,14 @@ function M._open_description_editor(change_id, description)
 
   -- Set buffer options
   vim.api.nvim_buf_set_name(buf, temp_file)
-  vim.api.nvim_buf_set_option(buf, 'buftype', '')
-  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-  vim.api.nvim_buf_set_option(buf, 'swapfile', false)
-  vim.api.nvim_buf_set_option(buf, 'filetype', 'jjdescription')
+  vim.bo[buf].buftype = ''
+  vim.bo[buf].bufhidden = 'wipe'
+  vim.bo[buf].swapfile = false
+  vim.bo[buf].filetype = 'jjdescription'
 
   -- Set content
   local lines = vim.split(description, "\n")
-  local help_lines = { "", "JJ: Save and close to update description, or :cq to abort" }
+  local help_lines = { "", "JJ: Save and close or hit <C-C> <C-c> to update description, or :cq to abort" }
   vim.list_extend(lines, help_lines)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
