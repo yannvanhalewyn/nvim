@@ -268,21 +268,26 @@ function M.rebase_change(change_id)
   M.rebase_state.change_id = change_id
   M.rebase_state.step = 'source_type'
   
-  vim.ui.input({
-    prompt = "Source type: (r)evision [single], (s)ource [subtree], (b)ranch → "
-  }, function(input)
-    if not input or input == "" then
-      input = "r"  -- Default to revision
+  local source_types = {
+    { key = 'r', label = 'Revision (single change)', flag = '-r' },
+    { key = 's', label = 'Source (subtree - change + descendants)', flag = '-s' },
+    { key = 'b', label = 'Branch (all revisions in branch)', flag = '-b' },
+  }
+  
+  vim.ui.select(source_types, {
+    prompt = 'Rebase source type:',
+    format_item = function(item)
+      return string.format('%s - %s', item.key, item.label)
+    end
+  }, function(choice)
+    if not choice then
+      vim.notify("Rebase cancelled", vim.log.levels.INFO)
+      clear_rebase_state()
+      return
     end
     
-    input = input:lower()
-    if input == "r" or input == "s" or input == "b" then
-      M.rebase_state.source_type = input
-      M._rebase_select_destination()
-    else
-      vim.notify("Invalid source type. Cancelled.", vim.log.levels.WARN)
-      clear_rebase_state()
-    end
+    M.rebase_state.source_type = choice.key
+    M._rebase_select_destination()
   end)
 end
 
@@ -326,20 +331,26 @@ end
 function M._rebase_select_destination_type()
   M.rebase_state.step = 'destination_type'
   
-  vim.ui.input({
-    prompt = "Destination type: (A)fter, (B)efore, (d)estination [default] → "
-  }, function(input)
-    if not input or input == "" then
-      input = "d"  -- Default to -d
+  local dest_types = {
+    { key = 'd', label = 'Destination (onto - default)', flag = '-d' },
+    { key = 'A', label = 'After destination', flag = '-A' },
+    { key = 'B', label = 'Before destination', flag = '-B' },
+  }
+  
+  vim.ui.select(dest_types, {
+    prompt = 'Rebase destination type:',
+    format_item = function(item)
+      return string.format('%s - %s', item.key, item.label)
+    end
+  }, function(choice)
+    if not choice then
+      vim.notify("Rebase cancelled", vim.log.levels.INFO)
+      clear_rebase_state()
+      return
     end
     
-    if input == "A" or input == "B" or input == "d" then
-      M.rebase_state.destination_type = input
-      M._rebase_execute()
-    else
-      vim.notify("Invalid destination type. Cancelled.", vim.log.levels.WARN)
-      clear_rebase_state()
-    end
+    M.rebase_state.destination_type = choice.key
+    M._rebase_execute()
   end)
 end
 
