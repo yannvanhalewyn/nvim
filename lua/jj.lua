@@ -17,6 +17,18 @@ M.jj_buffer = nil
 vim.api.nvim_set_hl(0, "JJLogChange", { link = "CursorLine" })
 
 --------------------------------------------------------------------------------
+-- Utils
+local function remove(list, pred)
+  local filtered = {}
+  for _, v in ipairs(list) do
+    if not pred(v) then
+      table.insert(filtered, v)
+    end
+  end
+  return filtered
+end
+
+--------------------------------------------------------------------------------
 -- Multi Selection
 --------------------------------------------------------------------------------
 
@@ -185,7 +197,7 @@ end
 -- @param opts table with:
 --   - content: string - initial content
 --   - filetype: string - buffer filetype
---   - help_text: string - help text shown at bottom
+--   - extra_help_text: string - extra help text shown at bottom
 --   - on_submit: function(content: string) - callback with user content (without help lines)
 --   - on_abort: function() - optional callback on abort
 local function open_editor_buffer(opts)
@@ -201,8 +213,13 @@ local function open_editor_buffer(opts)
 
   -- Set content
   local lines = vim.split(opts.content or "", "\n")
-  local help_lines = { "", opts.help_text or "JJ: Save and close or hit <C-C> <C-c> to submit, or :cq to abort" }
-  vim.list_extend(lines, help_lines)
+  if opts.extra_help_text then
+    table.insert(lines, 1, opts.extra_help_text)
+  end
+  vim.list_extend(lines, {
+    "JJ: <C-c><C-c> - confirm",
+    "JJ: <C-c><C-k> - abort"
+  })
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
   -- Open buffer in a split
@@ -214,25 +231,20 @@ local function open_editor_buffer(opts)
 
   -- Submit and abort handlers
   local function submit()
-    local content = vim.api.nvim_buf_get_lines(buf, 0, -1 - #help_lines, false)
-
-    -- Filter out lines starting with "JJ:"
-    local filtered_content = {}
-    for _, line in ipairs(content) do
-      if not line:match("^JJ:") then
-        table.insert(filtered_content, line)
-      end
-    end
-
-    local user_content = table.concat(filtered_content, "\n")
+    vim.cmd.stopinsert()
+    local content = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     vim.api.nvim_buf_delete(buf, { force = true })
-
     if opts.on_submit then
+      -- Filter out lines starting with "JJ:"
+      local filtered_lines = remove(content, function(x) return x:match("^JJ:") end)
+      local user_content = table.concat(filtered_lines, "\n")
       opts.on_submit(user_content)
     end
   end
 
   local function abort()
+    -- Makes it so the cursor remains at top after edit buffer close
+    vim.cmd.stopinsert()
     vim.api.nvim_buf_delete(buf, { force = true })
     if opts.on_abort then
       opts.on_abort()
@@ -242,22 +254,14 @@ local function open_editor_buffer(opts)
   end
 
   -- Setup keymaps
-  local keymap_opts = { buffer = buf, silent = true }
-  vim.keymap.set("n", "q", abort, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Abort" }))
-  vim.keymap.set("n", "<C-c><C-c>", submit, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Submit" }))
-  vim.keymap.set("i", "<C-c><C-c>", function()
-    vim.cmd.stopinsert()
-    submit()
-  end, vim.tbl_extend("force", keymap_opts, { desc = "JJ: Submit" }))
+  local keymap_opts = function(desc)
+    return { desc = desc, buffer = buf, silent = true }
+  end
 
-  -- Handle :wq
-  vim.api.nvim_create_autocmd("BufWriteCmd", {
-    buffer = buf,
-    callback = function()
-      submit()
-      return true
-    end
-  })
+  vim.keymap.set("n", "<C-c><C-k>", abort, keymap_opts("JJ: Abort"))
+  vim.keymap.set("i", "<C-c><C-k>", abort, keymap_opts("JJ: Abort"))
+  vim.keymap.set("n", "<C-c><C-c>", submit, keymap_opts("JJ: Submit"))
+  vim.keymap.set("i", "<C-c><C-c>", submit, keymap_opts("JJ: Submit"))
 
   -- Cleanup temp file
   vim.api.nvim_create_autocmd("BufWipeout", {
@@ -265,8 +269,6 @@ local function open_editor_buffer(opts)
     once = true,
     callback = function() vim.fn.delete(temp_file) end
   })
-
-  vim.cmd("startinsert")
 end
 
 --------------------------------------------------------------------------------
@@ -279,7 +281,6 @@ local function describe(change_id)
     open_editor_buffer({
       content = description,
       filetype = 'jjdescription',
-      help_text = "JJ: Save and close or hit <C-C> <C-c> to update description, or :cq to abort",
       on_submit = function(new_description)
         run_jj_command(
           { "jj", "describe", "-r", change_id, "-m", new_description },
@@ -514,8 +515,8 @@ local function describe_and_squash_changes(source_ids, target_id)
     open_editor_buffer({
       content = table.concat(change_descriptions, "\n"),
       filetype = 'jjdescription',
-      help_text = string.format(
-        "JJ: Squashing %d %s into %s. Edit message and submit with <C-c><C-c> or close window.",
+      extra_help_text = string.format(
+        "JJ: Squashing %d %s into %s. Enter a description for the combined commit.",
         source_count,
         source_count == 1 and "change" or "changes",
         target_id
