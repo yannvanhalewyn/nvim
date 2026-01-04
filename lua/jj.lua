@@ -215,7 +215,16 @@ local function open_editor_buffer(opts)
   -- Submit and abort handlers
   local function submit()
     local content = vim.api.nvim_buf_get_lines(buf, 0, -1 - #help_lines, false)
-    local user_content = table.concat(content, "\n")
+
+    -- Filter out lines starting with "JJ:"
+    local filtered_content = {}
+    for _, line in ipairs(content) do
+      if not line:match("^JJ:") then
+        table.insert(filtered_content, line)
+      end
+    end
+
+    local user_content = table.concat(filtered_content, "\n")
     vim.api.nvim_buf_delete(buf, { force = true })
 
     if opts.on_submit then
@@ -487,7 +496,7 @@ end
 --------------------------------------------------------------------------------
 
 local function describe_and_squash_changes(source_ids, target_id)
-  local count = #source_ids
+  local source_count = #source_ids
   local all_change_ids = vim.list_extend({}, source_ids)
   table.insert(all_change_ids, target_id)
 
@@ -507,8 +516,8 @@ local function describe_and_squash_changes(source_ids, target_id)
       filetype = 'jjdescription',
       help_text = string.format(
         "JJ: Squashing %d %s into %s. Edit message and submit with <C-c><C-c> or close window.",
-        count,
-        count == 1 and "change" or "changes",
+        source_count,
+        source_count == 1 and "change" or "changes",
         target_id
       ),
 
@@ -519,7 +528,7 @@ local function describe_and_squash_changes(source_ids, target_id)
           function()
             vim.notify(string.format(
               "Squashed %d %s into %s",
-              count, count == 1 and "change" or "changes",
+              source_count, source_count == 1 and "change" or "changes",
               target_id
             ), vim.log.levels.INFO)
             clear_selections()
@@ -635,7 +644,7 @@ local function setup_log_keymaps(buf, original_window)
   map("R", M.log, "Refresh log")
   map("d", function() with_change_at_cursor(describe) end, "Describe change")
   map("n", function() with_change_at_cursor(new_change) end, "New change after this")
-  map("A", function() with_change_at_cursor(abandon_change) end, "Abandon change")
+  map("a", function() with_change_at_cursor(abandon_change) end, "Abandon change")
   map("e", function() with_change_at_cursor(edit_change) end, "Edit (check out) change")
   map("r", rebase_change, "Rebase change")
   map("s", squash_change, "Squash change")
