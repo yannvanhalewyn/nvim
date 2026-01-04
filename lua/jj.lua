@@ -478,7 +478,7 @@ function M._rebase_execute()
 end
 
 -- Multi-select rebase: rebase all selected changes onto a destination
-function M.rebase_multi_select()
+function M.rebase_multi_select(dest_id)
   local selected_ids = get_selected_ids()
   local count = #selected_ids
 
@@ -487,41 +487,11 @@ function M.rebase_multi_select()
     return
   end
 
-  -- Step 1: Select destination
-  vim.notify(string.format("Select destination for %d change%s (navigate with j/k, <CR> to select, <Esc> to cancel)",
-    count, count == 1 and "" or "s"), vim.log.levels.INFO)
-
-  -- Set up temporary keymaps for destination selection
-  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
-    local opts = { buffer = M.jj_buffer, silent = true }
-
-    -- Confirm destination selection
-    vim.keymap.set("n", "<CR>", function()
-      local line = vim.api.nvim_get_current_line()
-      local dest_id = extract_change_id(line)
-
-      if dest_id and #dest_id >= 4 then
-        -- Remove temporary keymaps
-        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-
-        -- Step 2: Select destination type
-        M._rebase_multi_select_destination_type(selected_ids, dest_id)
-      else
-        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
-      end
-    end, opts)
-
-    -- Cancel rebase
-    vim.keymap.set("n", "<Esc>", function()
-      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-      vim.notify("Rebase cancelled", vim.log.levels.INFO)
-    end, opts)
-  end
+  -- Directly go to destination type selection
+  M._rebase_multi_select_destination_type(selected_ids, dest_id)
 end
 
--- Step 2: Select destination type for multi-select rebase
+-- Select destination type for multi-select rebase
 function M._rebase_multi_select_destination_type(selected_ids, dest_id)
   local count = #selected_ids
 
@@ -768,7 +738,7 @@ function M.squash_to_target(change_id)
 end
 
 -- Multi-select squash: squash all selected changes into a target
-function M.squash_multi_select()
+function M.squash_multi_select(target_id)
   local selected_ids = get_selected_ids()
   local count = #selected_ids
 
@@ -777,88 +747,59 @@ function M.squash_multi_select()
     return
   end
 
-  vim.notify(string.format("Select target to squash %d change%s into (navigate with j/k, <CR> to select, <Esc> to cancel)",
-    count, count == 1 and "" or "s"), vim.log.levels.INFO)
-
-  -- Set up temporary keymaps for target selection
-  if M.jj_buffer and vim.api.nvim_buf_is_valid(M.jj_buffer) then
-    local opts = { buffer = M.jj_buffer, silent = true }
-
-    -- Confirm target selection
-    vim.keymap.set("n", "<CR>", function()
-      local line = vim.api.nvim_get_current_line()
-      local target_id = extract_change_id(line)
-
-      if target_id and #target_id >= 4 then
-        -- Remove temporary keymaps
-        vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-        vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-
-        -- Build revset for all changes (target + all sources)
-        local revset_parts = { target_id }
-        for _, id in ipairs(selected_ids) do
-          table.insert(revset_parts, id)
-        end
-        local revset = table.concat(revset_parts, " | ")
-
-        -- Get all descriptions
-        get_changes(revset, function(changes)
-          if #changes < 1 then
-            vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
-            return
-          end
-
-          -- First change is target, rest are sources
-          local combined_parts = {}
-          for _, change in ipairs(changes) do
-            if change.description ~= "" then
-              table.insert(combined_parts, change.description)
-            end
-          end
-          local combined = table.concat(combined_parts, "\n\n")
-
-          open_editor_buffer({
-            content = combined,
-            filetype = 'jjdescription',
-            help_text = string.format("JJ: Squashing %d change%s into %s. Edit message and submit with <C-c><C-c>",
-              count, count == 1 and "" or "s", target_id:sub(1, 8)),
-            on_submit = function(message)
-              -- Build revset for sources
-              local from_revset = table.concat(selected_ids, " | ")
-
-              run_jj_command(
-                { "jj", "squash", "--from", from_revset, "--into", target_id, "-m", message },
-                function()
-                  vim.notify(string.format(
-                    "Squashed %d change%s into %s",
-                    count, count == 1 and "" or "s",
-                    target_id:sub(1, 8)
-                  ), vim.log.levels.INFO)
-                  clear_selections()
-                  M.log()
-                end,
-                function(result)
-                  vim.notify("Squash failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
-                end
-              )
-            end,
-            on_abort = function()
-              vim.notify("Squash cancelled", vim.log.levels.INFO)
-            end
-          })
-        end)
-      else
-        vim.notify("Could not find change ID on current line", vim.log.levels.WARN)
-      end
-    end, opts)
-
-    -- Cancel squash
-    vim.keymap.set("n", "<Esc>", function()
-      vim.keymap.del("n", "<CR>", { buffer = M.jj_buffer })
-      vim.keymap.del("n", "<Esc>", { buffer = M.jj_buffer })
-      vim.notify("Squash cancelled", vim.log.levels.INFO)
-    end, opts)
+  -- Build revset for all changes (target + all sources)
+  local revset_parts = { target_id }
+  for _, id in ipairs(selected_ids) do
+    table.insert(revset_parts, id)
   end
+  local revset = table.concat(revset_parts, " | ")
+
+  -- Get all descriptions
+  get_changes(revset, function(changes)
+    if #changes < 1 then
+      vim.notify("Could not get change descriptions", vim.log.levels.ERROR)
+      return
+    end
+
+    -- First change is target, rest are sources
+    local combined_parts = {}
+    for _, change in ipairs(changes) do
+      if change.description ~= "" then
+        table.insert(combined_parts, change.description)
+      end
+    end
+    local combined = table.concat(combined_parts, "\n\n")
+
+    open_editor_buffer({
+      content = combined,
+      filetype = 'jjdescription',
+      help_text = string.format("JJ: Squashing %d change%s into %s. Edit message and submit with <C-c><C-c>",
+        count, count == 1 and "" or "s", target_id:sub(1, 8)),
+      on_submit = function(message)
+        -- Build revset for sources
+        local from_revset = table.concat(selected_ids, " | ")
+
+        run_jj_command(
+          { "jj", "squash", "--from", from_revset, "--into", target_id, "-m", message },
+          function()
+            vim.notify(string.format(
+              "Squashed %d change%s into %s",
+              count, count == 1 and "" or "s",
+              target_id:sub(1, 8)
+            ), vim.log.levels.INFO)
+            clear_selections()
+            M.log()
+          end,
+          function(result)
+            vim.notify("Squash failed: " .. (result.stderr or ""), vim.log.levels.ERROR)
+          end
+        )
+      end,
+      on_abort = function()
+        vim.notify("Squash cancelled", vim.log.levels.INFO)
+      end
+    })
+  end)
 end
 
 --------------------------------------------------------------------------------
@@ -938,20 +879,22 @@ local function setup_log_keymaps(buf, original_window)
   -- Rebase operations (handle both single and multi-select)
   map("r", function()
     if get_selection_count() > 0 then
-      M.rebase_multi_select()
+      -- Multi-select: use cursor as destination
+      with_change_at_cursor(M.rebase_multi_select)()
     else
       with_change_at_cursor(M.rebase_change)()
     end
-  end, "Rebase change (or multi-select)")
+  end, "Rebase change (or multi-select onto cursor)")
 
   -- Squash operations (handle both single and multi-select)
   map("s", function()
     if get_selection_count() > 0 then
-      M.squash_multi_select()
+      -- Multi-select: use cursor as target
+      with_change_at_cursor(M.squash_multi_select)()
     else
       with_change_at_cursor(M.squash_to_parent)()
     end
-  end, "Squash into parent (or multi-select)")
+  end, "Squash into parent (or multi-select into cursor)")
 
   map("S", with_change_at_cursor(M.squash_to_target), "Squash into target")
 
