@@ -26,6 +26,7 @@ vim.g.maplocalleader = ","
 
 -- Add local jujutsu plugin to runtimepath for development
 vim.opt.runtimepath:prepend("~/code/jujutsu.nvim")
+vim.opt.runtimepath:prepend("~/code/difftastic.nvim")
 
 local jj = require("jujutsu-nvim")
 jj.setup({
@@ -79,7 +80,7 @@ vim.pack.add({
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
-  { src = "https://github.com/clabby/difftastic.nvim" },
+  -- { src = "https://github.com/clabby/difftastic.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
   -- These packages are meant for usage with Jujutusu
   -- { src = "https://github.com/yannvanhalewyn/jujutsu.nvim" },
