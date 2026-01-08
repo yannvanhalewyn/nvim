@@ -28,39 +28,6 @@ vim.g.maplocalleader = ","
 vim.opt.runtimepath:prepend("~/code/jujutsu.nvim")
 vim.opt.runtimepath:prepend("~/code/difftastic.nvim")
 
-local jj = require("jujutsu-nvim")
-jj.setup({
-  -- diff_preset = "diffview",
-  help_position = "bottom_right",
-  keymap = {
-    -- w = { cmd = function() print("OK!") end, desc = "OK" },
-    z = { cmd = "other", desc = "PRStack Sync" },
-    ["<C-p>"] = { cmd = "other", desc = "Create PR" },
-    ["<C-d>"] = {
-      cmd = function()
-        jj.with_change_at_cursor(function(change_id)
-          vim.notify("Custom diff command: " .. change_id)
-        end)
-      end,
-      desc = "Custom Diff Command"
-    }
-  },
-})
-
--- local jj = require("jujutsu-nvim")
--- jj.setup({
---   -- diff_preset = "diffview",
---   keymap = {
---     w = function() print("OK!") end,
---     i = "quit",
---     ["<C-d>"] = function()
---       jj.with_change_at_cursor(function(change_id)
---         vim.notify("Custom diff command: " .. change_id)
---       end)
---     end,
---   }
--- })
-
 vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
@@ -82,6 +49,7 @@ vim.pack.add({
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
   -- { src = "https://github.com/clabby/difftastic.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
+  { src = "https://github.com/esmuellert/codediff.nvim" },
   -- These packages are meant for usage with Jujutusu
   -- { src = "https://github.com/yannvanhalewyn/jujutsu.nvim" },
   { src = "https://github.com/rafikdraoui/jj-diffconflicts" }, -- Better 2-way diff conflicts using Jujutusu
@@ -367,7 +335,8 @@ gitsigns.setup()
 require("hunk").setup({
   keys = {
     global = {
-      quit = { "q" },
+      -- Maybe there should be a quit_nvim and quit_hunk_tab
+      -- quit = { "q" },
       accept = { "<C-c><C-c>" },
       focus_tree = { "<leader>n" },
     },
@@ -481,7 +450,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     -- Disable semantic HL for functions because it's slower and not necessary
     if client then
-      client.server_capabilities.semanticTokensProvider = nil
+      -- client.server_capabilities.semanticTokensProvider = nil
     end
     if client and client:supports_method("textDocument/documentHighlight", event.buf) then
       highlight_registry[event.buf] = enable_document_highlight(event.buf)
@@ -512,23 +481,6 @@ vim.api.nvim_create_user_command("DiffCommit",
   function() f.select_git_commit_for_diffview() end,
   { desc = "Select git commit for DiffviewOpen" }
 )
-
-require("difftastic-nvim").setup({
-  download = true, -- Auto-download pre-built binary
-  vcs = "jj",
-  tree = {
-    width = 25,
-  }
-})
-
--- Custom command to open Difft in a new tab
-vim.api.nvim_create_user_command("DifftTab", function(opts)
-  vim.cmd("tabnew")
-  vim.cmd("Difft " .. opts.args)
-end, {
-  nargs = "*",
-  desc = "Open Difft in a new tab"
-})
 
 --------------------------------------------------------------------------------
 -- Clojure
@@ -613,14 +565,28 @@ kulala.setup()
 vim.keymap.set("n", "<leader>?", function() require("which-key").show({ global = false }) end,
   { desc = "Buffer Local Keymaps (which-key)" })
 
--- local jj = require("jujutsu-nvim")
--- jj.setup({
---   diff_preset = "none"
--- })
+local jj = require("jujutsu-nvim")
+jj.setup({
+  -- diff_preset = "codediff",
+  help_position = "bottom_right",
+})
+
+require("difftastic-nvim").setup({
+  download = true, -- Auto-download pre-built binary
+  vcs = "jj",
+  scroll_to_first_hunk = true,
+  hunk_wrap_file = true,
+  tree = {
+    width = 25,
+  }
+})
+
 require("neo-tree").setup({
   window = {
     width = 30,
-  }
+  },
+  -- sources = { "document_symbols", "filesystem", "buffers", "git_status" },
+  sources = { "document_symbols", "filesystem", "buffers", "git_status" },
 })
 
 -- Files and buffers
@@ -739,12 +705,12 @@ vim.keymap.set("n", "<leader>gld", ":GitLink compare file=./ rev=master..<c-r><c
 vim.keymap.set("n", "<leader>glD", ":GitLink! compare file=./ rev=master..<c-r><c-w>", { desc = "Git Link Diff (Open)" })
 
 -- VCS
-vim.keymap.set("n", "<leader>gdd", ":DifftTab @<CR>", { desc = "Git Diff current index", })
-vim.keymap.set("n", "<leader>gdm", ":DifftTab master..@", { desc = "Git Diff master ", })
+vim.keymap.set("n", "<leader>gdd", ":Difft @<CR>", { desc = "Git Diff current index", })
+vim.keymap.set("n", "<leader>gdm", ":Difft master..@", { desc = "Git Diff master ", })
 -- Useful for latest change in
-vim.keymap.set("n", "<leader>gdh", ":DifftTab @-<CR>", { desc = "Git Diff HEAD~1", }) -- 'git show <rev under cursor>'
-vim.keymap.set("n", "<leader>gdr", ":DifftTab <C-r><C-w>^!", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
-vim.keymap.set("n", "<leader>gdo", ":DifftTab ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdh", ":Difft @-<CR>", { desc = "Git Diff HEAD~1", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdr", ":Difft <C-r><C-w>", { desc = "Git Diff ref at cursor", }) -- 'git show <rev under cursor>'
+vim.keymap.set("n", "<leader>gdo", ":Difft ", { desc = "Git Diff Other", }) -- 'git show <rev under cursor>'
 vim.keymap.set("n", "<leader>gt", ":DiffviewFileHistory %<CR>", { desc = "Git Timemachine" })
 vim.keymap.set("n", "<leader>gl", ":DiffviewFileHistory<CR>", { desc = "Git Log" })
 vim.keymap.set("n", "<leader>gf", f.open_current_file_in_revision, { desc = "Git visit file from revision" })
@@ -758,7 +724,8 @@ end)
 vim.keymap.set("n", "]e", function()
   vim.diagnostic.jump({ count = 1, float = true })
 end)
-vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Code Diagnostics" })
+vim.keymap.set("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Reveal Diagnostic at Cursor" })
+vim.keymap.set("n", "<leader>cE", vim.diagnostic.setqflist, { desc = "Show Diagnostics in Quickfix window" })
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Actions" })
 vim.keymap.set("n", "<leader>cr", f.copy_file_reference, { desc = "Code Copy File Reference" })
 vim.keymap.set("n", "<leader>cR", function() f.copy_file_reference("+") end, { desc = "Code Copy File Reference to clipboard" })

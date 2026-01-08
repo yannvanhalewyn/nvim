@@ -24,8 +24,14 @@ M.enter = function()
     return
   end
 
-  -- Check if there's only one window
-  if #vim.api.nvim_tabpage_list_wins(0) ~= 1 then
+  -- Check if there's only one normal window (exclude floating windows)
+  local wins = vim.api.nvim_tabpage_list_wins(0)
+  local normal_wins = vim.tbl_filter(function(win)
+    local config = vim.api.nvim_win_get_config(win)
+    return config.relative == ''  -- Only count non-floating windows
+  end, wins)
+
+  if #normal_wins ~= 1 then
     print("Zen mode requires only one window to be open")
     return
   end

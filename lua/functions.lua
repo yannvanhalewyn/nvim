@@ -115,12 +115,24 @@ M.harpoon_select = function(n)
   end
 end
 
+-- Opens a sidepanel to local todo markdown files
+-- Checks if there's a ,todos.md in the current project
+-- If not opens ArQiver's todos.md in the Obsidian vault
+-- Since that's a sizeable project with important information, I use this for
+-- backup and access via mobile devices
 M.show_todos = function()
   local obsidian_root_dir = "/Users/yannvanhalewyn/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
+  local project_todos_file = vim.fn.getcwd() .. "/,todos.md"
   local width = 80
 
-  -- vim.cmd("vsplit " .. vim.fn.getcwd() .. "/todos.md")
-  vim.cmd("vsplit " .. obsidian_root_dir .. "ArQiver/todos.md")
+  local todos_file
+  if vim.fn.filereadable(project_todos_file) == 0 then
+    todos_file = obsidian_root_dir .. "ArQiver/todos.md"
+  else
+    todos_file = project_todos_file
+  end
+
+  vim.cmd("vsplit " .. todos_file)
   vim.cmd("vertical resize " .. width)
 
   vim.keymap.set("n", "q", ":quit<CR>", { buffer = true, silent = true })
