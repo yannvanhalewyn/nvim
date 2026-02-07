@@ -180,7 +180,7 @@ require("neo-tree").setup({
 --------------------------------------------------------------------------------
 -- LSP / Completion
 
-vim.lsp.enable({ "lua_ls", "clojure_lsp" })
+vim.lsp.enable({ "lua_ls", "clojure_lsp", "clangd" })
 
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
@@ -322,7 +322,8 @@ vim.api.nvim_create_autocmd('VimEnter', {
 vim.api.nvim_create_autocmd('FileType', {
   pattern = {
     'lua', 'clojure', 'vim', 'markdown', 'http',
-    'javascript', 'json', 'yaml', 'html', 'css', 'bash', 'zsh', 'fish'
+    'javascript', 'json', 'yaml', 'html', 'css', 'bash', 'zsh', 'fish',
+    'c', 'cpp'
   },
   callback = function()
     vim.treesitter.start()
@@ -467,6 +468,37 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.linebreak = true
     vim.opt_local.spell = true
   end
+})
+
+-- C/C++ specific settings
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "c", "cpp" },
+  callback = function()
+    vim.opt_local.shiftwidth = 4
+    vim.opt_local.tabstop = 4
+    vim.opt_local.softtabstop = 4
+  end
+})
+
+-- Make command with argument memory
+local last_make_args = ""
+
+vim.api.nvim_create_user_command("Make", function(opts)
+  last_make_args = opts.args
+  vim.cmd("make " .. opts.args)
+end, { 
+  nargs = "*",
+  desc = "Run make and remember arguments"
+})
+
+vim.api.nvim_create_user_command("MakeRepeat", function()
+  if last_make_args ~= "" then
+    vim.cmd("make " .. last_make_args)
+  else
+    vim.cmd("make")
+  end
+end, {
+  desc = "Repeat last Make command with same arguments"
 })
 
 vim.api.nvim_create_user_command("HtmlToHiccup", "'<,'>!xargs -0 hiccup-cli --html", {range=true})
@@ -729,6 +761,7 @@ vim.keymap.set("n", "<leader>cE", vim.diagnostic.setqflist, { desc = "Show Diagn
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Actions" })
 vim.keymap.set("n", "<leader>cr", f.copy_file_reference, { desc = "Code Copy File Reference" })
 vim.keymap.set("n", "<leader>cR", function() f.copy_file_reference("+") end, { desc = "Code Copy File Reference to clipboard" })
+vim.keymap.set("n", "<leader>m", ":make<CR>", { desc = "Make (repeat last)" })
 
 -- Quickfix
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
