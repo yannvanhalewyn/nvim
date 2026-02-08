@@ -197,6 +197,20 @@ require("catppuccin").setup({
         ["@keyword.conditional.clojure"] = { fg = colors.white },
         ["@keyword.coroutine.clojure"] = { fg = colors.white },
         ["@comment.clojure"] = { fg = colors.peach },
+        -- C
+        ["@comment.c"] = { fg = colors.peach },
+        ["@type.builtin.c"] = { fg = colors.white },
+        ["@type.c"] = { fg = colors.white },
+        ["@lsp.type.class.c"] = { fg = colors.white },
+        ["@lsp.type.macro.c"] = { fg = colors.white },
+        ["@constant.c"] = { fg = colors.white },
+        ["@variable.c"] = { fg = colors.white },
+        -- ["@variable.c"] = { link = "@variable.parameter.c" },
+
+        -- ["@variable.c"] = { fg = colors.red },
+        ["@keyword.conditional.c"] = { fg = colors.white },
+        -- print statements
+        ["@lsp.typemod.function.defaultLibrary.c"] = { fg = colors.purple },
       }
     end
   },
@@ -624,10 +638,10 @@ vim.keymap.set("i", "<C-f>", "<right>")
 vim.keymap.set("i", "<C-b>", "<left>")
 vim.keymap.set('i', "<C-e>", snippets.expand_snippet, { desc = 'Snippet Expand' })
 -- vim.keymap.set("i", "<C-k>", vim.lsp.buf.signature_help, { desc = "LSP: Signature Help" })
--- vim.keymap.set('i', "(", "()<left>")
--- vim.keymap.set('i', "[", "[]<left>")
--- vim.keymap.set('i', "{", "{}<left>")
--- vim.keymap.set('i', '"', '""<left>')
+vim.keymap.set('i', "(", "()<left>")
+vim.keymap.set('i', "[", "[]<left>")
+vim.keymap.set('i', "{", "{}<left>")
+vim.keymap.set('i', '"', '""<left>')
 vim.keymap.set("n", "+", "<C-a>", { desc = "Edit Increment" })
 vim.keymap.set("n", "-", "<C-x>", { desc = "Edit Decrement" })
 vim.keymap.set("n", "\\", ",", { desc = "Reverse f, t, F or T" }) -- Since ',' is the localleader
