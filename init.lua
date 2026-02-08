@@ -486,7 +486,7 @@ local last_make_args = ""
 vim.api.nvim_create_user_command("Make", function(opts)
   last_make_args = opts.args
   vim.cmd("make " .. opts.args)
-end, { 
+end, {
   nargs = "*",
   desc = "Run make and remember arguments"
 })
@@ -761,7 +761,7 @@ vim.keymap.set("n", "<leader>cE", vim.diagnostic.setqflist, { desc = "Show Diagn
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Actions" })
 vim.keymap.set("n", "<leader>cr", f.copy_file_reference, { desc = "Code Copy File Reference" })
 vim.keymap.set("n", "<leader>cR", function() f.copy_file_reference("+") end, { desc = "Code Copy File Reference to clipboard" })
-vim.keymap.set("n", "<leader>m", ":make<CR>", { desc = "Make (repeat last)" })
+vim.keymap.set("n", "<leader>m", ":MakeRepeat<CR>", { desc = "Make (repeat last)" })
 
 -- Quickfix
 vim.keymap.set("n", "<leader>tq", f.toggle_quickfix_window, { desc = "Toggle Quickfix Window" })
