@@ -5,7 +5,7 @@
 require('vim._extui').enable({})
 
 vim.o.number = true
-vim.o.relativenumber = true
+-- vim.o.relativenumber = true
 vim.o.wrap = false
 vim.o.signcolumn = "yes"
 vim.o.shiftwidth = 2
@@ -130,7 +130,7 @@ require("neo-tree").setup({
 --------------------------------------------------------------------------------
 -- LSP / Completion
 
-vim.lsp.enable({ "lua_ls", "clojure_lsp", "clangd" })
+vim.lsp.enable({ "lua_ls", "clojure_lsp", "clangd", "rust_analyzer" })
 
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
@@ -197,6 +197,7 @@ require("catppuccin").setup({
         ["@keyword.conditional.clojure"] = { fg = colors.white },
         ["@keyword.coroutine.clojure"] = { fg = colors.white },
         ["@comment.clojure"] = { fg = colors.peach },
+
         -- C
         ["@comment.c"] = { fg = colors.peach },
         ["@type.builtin.c"] = { fg = colors.white },
@@ -209,8 +210,21 @@ require("catppuccin").setup({
 
         -- ["@variable.c"] = { fg = colors.red },
         ["@keyword.conditional.c"] = { fg = colors.white },
+        ["@keyword.repeat.c"] = { fg = colors.white },
         -- print statements
         ["@lsp.typemod.function.defaultLibrary.c"] = { fg = colors.purple },
+        ["@lsp.type.parameter.c"] = { fg = colors.red },
+
+        -- Rust
+        ["@comment.rust"] = { fg = colors.peach },
+        ["@keyword.rust"] = { fg = colors.white },
+        ["@keyword.conditional.rust"] = { fg = colors.white },
+        ["@keyword.function.rust"] = { fg = colors.white },
+        ["@lsp.type.keyword.rust"] = { fg = colors.white },
+        ["@type.rust"] = { fg = colors.white },
+        ["@lsp.type.struct.rust"] = { fg = colors.white },
+        ["@module.rust"] = { fg = colors.white },
+        ["@lsp.type.namespace.rust"] = { fg = colors.white },
       }
     end
   },
@@ -268,7 +282,8 @@ vim.api.nvim_create_autocmd('VimEnter', {
   callback = function()
     local required = {
       'lua', 'luadoc', 'clojure', 'printf', 'vim', 'vimdoc', 'kulala_http',
-      'javascript', 'json', 'yaml', 'markdown', 'html', 'css', 'bash', 'zsh', 'fish'
+      'javascript', 'json', 'yaml', 'markdown', 'html', 'css', 'bash', 'zsh', 'fish',
+      'rust'
     }
     local parser_dir = vim.fn.stdpath('data') .. '/site/parser'
     local missing = vim.tbl_filter(function(lang)
@@ -287,7 +302,7 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = {
     'lua', 'clojure', 'vim', 'markdown', 'http',
     'javascript', 'json', 'yaml', 'html', 'css', 'bash', 'zsh', 'fish',
-    'c', 'cpp'
+    'c', 'cpp', 'rust'
   },
   callback = function()
     vim.treesitter.start()
@@ -766,14 +781,14 @@ vim.keymap.set("n", "<leader>hse", kulala.set_selected_env, { desc = "HTTP Set E
 
 -- Opencode
 vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
-vim.keymap.set("n", "<leader>aa", function() require('opencode').ask('@cursor: ') end, { desc = "AI ask about this" })
-vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@selection: ') end,
+vim.keymap.set("n", "<leader>aa", function() require('opencode').ask('@this: ', { submit = true }) end, { desc = "AI ask about this" })
+vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@this: ') end,
   { desc = "AI Ask About selection" })
 vim.keymap.set("n", "<leader>an", function() require('opencode').command('session_new') end, { desc = "AI New session" })
 vim.keymap.set("n", "<leader>ay", function() require('opencode').command('messages_copy') end,
   { desc = "AI Copy last message" })
 vim.keymap.set({ "n", "v" }, "<leader>ap", function() require('opencode').select_prompt() end, { desc = "Select prompt" })
-vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('messages_half_page_up') end,
+vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('session.half_page_up') end,
   { desc = "Scroll messages up" })
-vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('messages_half_page_down') end,
+vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('session.half_page_down') end,
   { desc = "Scroll messages down" })
