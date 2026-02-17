@@ -26,13 +26,11 @@ vim.g.maplocalleader = ","
 
 -- Add local jujutsu plugin to runtimepath for development
 vim.opt.runtimepath:prepend("~/code/jujutsu.nvim")
-vim.opt.runtimepath:prepend("~/code/difftastic.nvim")
 
 vim.pack.add({
   -- UI
   { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
   { src = "https://github.com/catppuccin/nvim" },
-  -- { src = "https://github.com/p00f/alabaster.nvim" },
   -- Editor
   { src = "https://github.com/tpope/vim-surround" },
   { src = "https://github.com/tpope/vim-repeat" },             -- Make surround repeatable
@@ -47,7 +45,7 @@ vim.pack.add({
   -- VCS
   { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/linrongbin16/gitlinker.nvim" },
-  -- { src = "https://github.com/clabby/difftastic.nvim" },
+  { src = "https://github.com/clabby/difftastic.nvim" },
   { src = "https://github.com/sindrets/diffview.nvim" },
   { src = "https://github.com/esmuellert/codediff.nvim" },
   -- These packages are meant for usage with Jujutusu
@@ -68,6 +66,8 @@ vim.pack.add({
   -- HTTP
   { src = "https://github.com/mistweaverco/kulala.nvim" },
   -- AI
+  -- { src = "https://github.com/olimorris/codecompanion.nvim", version = vim.version.range("^18.0.0") },
+  -- { src = "https://github.com/augmentcode/augment.vim" },
   { src = "https://github.com/supermaven-inc/supermaven-nvim" },
   { src = "https://github.com/NickvanDyke/opencode.nvim" }
 })
@@ -543,6 +543,23 @@ require("supermaven-nvim").setup({
   }
 })
 
+-- vim.g.augment_workspace_folders = {'/path/to/project'}
+
+-- require("codecompanion").setup({
+--   interactions = {
+--     chat = {
+--       adapter = "opencode",
+--       model = "sonnet",
+--     },
+--     inline = {
+--       adapter = "opencode",
+--     },
+--     cmd = {
+--       adapter = "opencode",
+--     },
+--   },
+-- })
+
 --------------------------------------------------------------------------------
 -- Mappings
 
@@ -615,11 +632,11 @@ vim.keymap.set("n", "<leader>x", ":Pick grep_live<CR>", { desc = "Grep Live" })
 vim.keymap.set("n", "<leader>'", ":Pick resume<CR>", { desc = "Resume Find" })
 vim.keymap.set("n", "<leader>d", ":Oil<CR>", { desc = "Browse Directory" })
 vim.keymap.set("n", "<leader>j", ":JJ<CR>", { desc = "JJ Log" })
-vim.keymap.set("n", "<leader>N", ":Neotree reveal<CR>", { desc = "Neotree" })
-vim.keymap.set("n", "<leader>nf", ":Neotree float<cr>", { desc = "Neotree Git Status" })
-vim.keymap.set("n", "<leader>nd", ":Neotree document_symbols right<CR>", { desc = "Neotree Document Symbols" })
-vim.keymap.set("n", "<leader>nb", ":Neotree buffers left<cr>", { desc = "Neotree Document Symbols" })
-vim.keymap.set("n", "<leader>ng", ":Neotree git_status left<cr>", { desc = "Neotree Git Status" })
+vim.keymap.set("n", "<leader>n", ":Neotree reveal<CR>", { desc = "Neotree" })
+vim.keymap.set("n", "<leader>Nf", ":Neotree float<cr>", { desc = "Neotree Git Status" })
+vim.keymap.set("n", "<leader>Nd", ":Neotree document_symbols right<CR>", { desc = "Neotree Document Symbols" })
+vim.keymap.set("n", "<leader>Nb", ":Neotree buffers left<cr>", { desc = "Neotree Document Symbols" })
+vim.keymap.set("n", "<leader>Ng", ":Neotree git_status left<cr>", { desc = "Neotree Git Status" })
 vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon Add File" })
 vim.keymap.set("n", "<leader>H", f.harpoon_quick_menu, { desc = "Harpoon Quick Menu" })
 vim.keymap.set("n", "<A-h>", f.harpoon_select(1), { desc = "Harpoon Browse File (1)" })
@@ -780,15 +797,16 @@ vim.keymap.set("n", "<leader>he", kulala.run, { desc = "HTTP Execute Request" })
 vim.keymap.set("n", "<leader>hse", kulala.set_selected_env, { desc = "HTTP Set Env" })
 
 -- Opencode
-vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
-vim.keymap.set("n", "<leader>aa", function() require('opencode').ask('@this: ', { submit = true }) end, { desc = "AI ask about this" })
-vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@this: ') end,
-  { desc = "AI Ask About selection" })
-vim.keymap.set("n", "<leader>an", function() require('opencode').command('session_new') end, { desc = "AI New session" })
-vim.keymap.set("n", "<leader>ay", function() require('opencode').command('messages_copy') end,
-  { desc = "AI Copy last message" })
-vim.keymap.set({ "n", "v" }, "<leader>ap", function() require('opencode').select_prompt() end, { desc = "Select prompt" })
-vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('session.half_page_up') end,
-  { desc = "Scroll messages up" })
-vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('session.half_page_down') end,
-  { desc = "Scroll messages down" })
+vim.keymap.set("n", "<leader>ac", ":CodeCompanionChat<CR>", { desc = "AI Chat" })
+-- vim.keymap.set("n", "<leader>aA", function() require('opencode').ask() end, { desc = "AI ask" })
+-- vim.keymap.set("n", "<leader>aa", function() require('opencode').ask('@this: ', { submit = true }) end, { desc = "AI ask about this" })
+-- vim.keymap.set("v", "<leader>aa", function() require('opencode').ask('@this: ') end,
+--   { desc = "AI Ask About selection" })
+-- vim.keymap.set("n", "<leader>an", function() require('opencode').command('session_new') end, { desc = "AI New session" })
+-- vim.keymap.set("n", "<leader>ay", function() require('opencode').command('messages_copy') end,
+--   { desc = "AI Copy last message" })
+-- vim.keymap.set({ "n", "v" }, "<leader>ap", function() require('opencode').select_prompt() end, { desc = "Select prompt" })
+-- vim.keymap.set("n", "<A-C-u>", function() require('opencode').command('session.half_page_up') end,
+--   { desc = "Scroll messages up" })
+-- vim.keymap.set("n", "<A-C-d>", function() require('opencode').command('session.half_page_down') end,
+--   { desc = "Scroll messages down" })
